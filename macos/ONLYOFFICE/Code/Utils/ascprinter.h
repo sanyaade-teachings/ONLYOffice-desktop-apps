@@ -114,7 +114,7 @@ public:
     pData->put_Context(m_pPrinterInfo->m_pContext);
 
     int nPage = (int)[[NSPrintOperation currentOperation] currentPage];
-    pData->put_Page((nPage - 1));
+    pData->put_Page(nPage - 1);
 
     NSEditorApi::CAscMenuEvent* pEvent = new NSEditorApi::CAscMenuEvent();
     pEvent->m_nType = ASC_MENU_EVENT_TYPE_CEF_PRINT_PAGE;
@@ -262,8 +262,6 @@ public:
         m_pView = [[ASCPrintView alloc] initWithParams:NSMakeRect(0, 0, 100, 100) manager:m_pManager viewId:viewId info:&m_oInfo];
         m_pParent = m_pManager->GetViewById(viewId);
 
-        NSLog(@"page from %d to %d", pageCurrent, m_oInfo.m_nPagesCount);
-
         NSView* pViewParent = (__bridge NSView*)(m_pParent->GetWidgetImpl()->cef_handle);
 
         // start print dialog
@@ -309,11 +307,11 @@ public:
             PMSetPageRange(printSettings, 1, m_oInfo.m_nPagesCount);
             PMSetCopies(printSettings , [pNOptions[@"copies"] intValue], kPMUnlocked);
 
-//            PMPageFormat pageFormat =  (PMPageFormat)pPrintInfo.PMPageFormat;
-//            if ( [pNOptions[@"paperOrientation"] isEqualTo:@"landscape"] )
-//                PMSetOrientation(pageFormat, kPMLandscape, kPMUnlocked);
-//            else PMSetOrientation(pageFormat, kPMPortrait, kPMUnlocked);
-//            [pPrintInfo updateFromPMPageFormat];
+            PMPageFormat pageFormat =  (PMPageFormat)pPrintInfo.PMPageFormat;
+            if ( [pNOptions[@"paperOrientation"] isEqualTo:@"landscape"] )
+                PMSetOrientation(pageFormat, kPMLandscape, kPMUnlocked);
+            else PMSetOrientation(pageFormat, kPMPortrait, kPMUnlocked);
+            [pPrintInfo updateFromPMPageFormat];
 
             PMSetFirstPage(printSettings, pageCurrent, kPMUnlocked ) ;
 
@@ -325,6 +323,23 @@ public:
                 PMSetDuplex(printSettings, kPMDuplexTumble);
             else PMSetDuplex(printSettings, kPMDuplexNone);
             [pPrintInfo updateFromPMPrintSettings];
+        } else {
+//            NSEditorApi::CAscMenuEvent* pEvent = new NSEditorApi::CAscMenuEvent(ASC_MENU_EVENT_TYPE_CEF_PRINT_PAGE_CHECK);
+//            NSEditorApi::CAscPrintPage* pData = new NSEditorApi::CAscPrintPage();
+//            pData->put_Context(m_oInfo.m_pContext);
+//            m_oInfo.m_pContext->AddRef();
+//
+//            pData->put_Page(0);
+//
+//            pEvent->m_pData = pData;
+//            m_pParent->Apply(pEvent);
+//
+//            bool is_landscape = pData->get_IsRotate();
+//            PMPageFormat pageFormat = (PMPageFormat)pPrintInfo.PMPageFormat;
+//            if ( is_landscape )
+//                PMSetOrientation(pageFormat, kPMLandscape, kPMUnlocked);
+//            else PMSetOrientation(pageFormat, kPMPortrait, kPMUnlocked);
+//            [pPrintInfo updateFromPMPageFormat];
         }
 
         NSPrintPanelOptions options = NSPrintPanelShowsCopies;
@@ -332,6 +347,7 @@ public:
         options |= NSPrintPanelShowsPaperSize;
         options |= NSPrintPanelShowsPrintSelection;
         options |= NSPrintPanelShowsPreview;
+        options |= NSPrintPanelShowsOrientation;
 
         NSPrintOperation* pro;
         if (pPrintInfo)
