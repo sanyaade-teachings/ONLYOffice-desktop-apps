@@ -30,15 +30,16 @@
  *
 */
 
-#ifdef __linux__
+#ifdef _WIN32
+# include "utils.h"
+# include "version.h"
+#else
 # include <libnotify/notify.h>
 # include <unordered_map>
 #endif
 #include <QTextDocumentFragment>
 #include "components/cnotification.h"
-#include "utils.h"
 #include "defines.h"
-#include "version.h"
 
 #define NOTIF_TIMEOUT_MS 10000
 #ifdef __linux__
