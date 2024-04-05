@@ -35,7 +35,10 @@
 # include "version.h"
 #else
 # include <libnotify/notify.h>
+# include <gio/gio.h>
+# include <glib.h>
 # include <unordered_map>
+# include "utils.h"
 #endif
 #include <QTextDocumentFragment>
 #include <QDBusConnection>
@@ -99,17 +102,28 @@ static void on_close(NotifyNotification *ntf, void *data)
 
 static bool isNotificationsEnabled()
 {
-    QDBusConnection conn = QDBusConnection::sessionBus();
-    if (conn.isConnected()) {
-        QDBusInterface itf("org.freedesktop.Notifications", "/org/freedesktop/Notifications", "org.freedesktop.DBus.Properties", conn);
-        if (itf.isValid()) {
-            QDBusMessage msg = itf.call("Get", "org.freedesktop.Notifications", "Inhibited");
-            if (msg.type() == QDBusMessage::ReplyMessage && msg.arguments().size() > 0) {
-                QVariant var = msg.arguments().at(0);
-                if (var.canConvert<QDBusVariant>()) {
-                    QVariant res = var.value<QDBusVariant>().variant();
-                    if (res.type() == QVariant::Bool && !res.toBool())
-                        return true;
+    if (WindowHelper::getEnvInfo() == WindowHelper::GNOME) {
+        GSettings *stn = g_settings_new("org.gnome.desktop.notifications");
+        GVariant *var = g_settings_get_value(stn, "show-banners");
+        gboolean res = false;
+        g_variant_get(var, "b", &res);
+        g_object_unref(var);
+        g_object_unref(stn);
+        return res;
+    } else
+    if (WindowHelper::getEnvInfo() == WindowHelper::KDE) {
+        QDBusConnection conn = QDBusConnection::sessionBus();
+        if (conn.isConnected()) {
+            QDBusInterface itf("org.freedesktop.Notifications", "/org/freedesktop/Notifications", "org.freedesktop.DBus.Properties", conn);
+            if (itf.isValid()) {
+                QDBusMessage msg = itf.call("Get", "org.freedesktop.Notifications", "Inhibited");
+                if (msg.type() == QDBusMessage::ReplyMessage && msg.arguments().size() > 0) {
+                    QVariant var = msg.arguments().at(0);
+                    if (var.canConvert<QDBusVariant>()) {
+                        QVariant res = var.value<QDBusVariant>().variant();
+                        if (res.type() == QVariant::Bool && !res.toBool())
+                            return true;
+                    }
                 }
             }
         }
