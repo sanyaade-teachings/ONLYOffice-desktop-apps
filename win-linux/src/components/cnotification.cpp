@@ -38,6 +38,10 @@
 # include <unordered_map>
 #endif
 #include <QTextDocumentFragment>
+#include <QDBusConnection>
+#include <QDBusInterface>
+#include <QDBusMessage>
+#include <QDBusVariant>
 #include "components/cnotification.h"
 #include "defines.h"
 
@@ -91,6 +95,26 @@ static void on_close(NotifyNotification *ntf, void *data)
         g_object_unref(ntf);
         ntfMap->erase(it);
     }
+}
+
+static bool isNotificationsEnabled()
+{
+    QDBusConnection conn = QDBusConnection::sessionBus();
+    if (conn.isConnected()) {
+        QDBusInterface itf("org.freedesktop.Notifications", "/org/freedesktop/Notifications", "org.freedesktop.DBus.Properties", conn);
+        if (itf.isValid()) {
+            QDBusMessage msg = itf.call("Get", "org.freedesktop.Notifications", "Inhibited");
+            if (msg.type() == QDBusMessage::ReplyMessage && msg.arguments().size() > 0) {
+                QVariant var = msg.arguments().at(0);
+                if (var.canConvert<QDBusVariant>()) {
+                    QVariant res = var.value<QDBusVariant>().variant();
+                    if (res.type() == QVariant::Bool && !res.toBool())
+                        return true;
+                }
+            }
+        }
+    }
+    return false;
 }
 #else
 # include "platform_win/wintoastlib.h"
@@ -215,6 +239,8 @@ void CNotification::clear()
 bool CNotification::show(const QString &msg, const QString &content, DlgBtns dlgBtns, const FnVoidInt &callback)
 {
 #ifdef __linux__
+    if (!isNotificationsEnabled())
+        return false;
     QString lpText = QTextDocumentFragment::fromHtml(msg).toPlainText();
     NotifyNotification *ntf = notify_notification_new(lpText.toLocal8Bit().data(), content.toLocal8Bit().data(), NULL);
     g_signal_connect(G_OBJECT(ntf), "closed", G_CALLBACK(on_close), (void*)&pimpl->ntfMap);
