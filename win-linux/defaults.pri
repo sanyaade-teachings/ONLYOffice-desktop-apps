@@ -303,8 +303,6 @@ core_windows {
 
     build_xp {
         DEFINES += __OS_WIN_XP
-    } else {
-        LIBS += -ldwmapi
     }
 }
 
