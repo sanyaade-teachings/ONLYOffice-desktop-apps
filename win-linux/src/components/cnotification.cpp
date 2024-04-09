@@ -134,6 +134,8 @@ static bool isNotificationsEnabled()
             QDBusInterface itf("org.xfce.Xfconf", "/org/xfce/Xfconf", "org.xfce.Xfconf", conn);
             if (itf.isValid()) {
                 QDBusMessage msg = itf.call("GetProperty",  "xfce4-notifyd", "/do-not-disturb");
+                if (msg.type() == QDBusMessage::ErrorMessage)
+                    return true; // By default the property is not defined and notifications are enabled
                 if (msg.type() == QDBusMessage::ReplyMessage && msg.arguments().size() > 0) {
                     QVariant var = msg.arguments().at(0);
                     if (var.canConvert<QDBusVariant>()) {
