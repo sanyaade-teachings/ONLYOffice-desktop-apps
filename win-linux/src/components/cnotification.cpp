@@ -111,6 +111,15 @@ static bool isNotificationsEnabled()
         g_object_unref(stn);
         return res;
     } else
+    if (WindowHelper::getEnvInfo() == WindowHelper::CINNAMON) {
+        GSettings *stn = g_settings_new("org.cinnamon.desktop.notifications");
+        GVariant *var = g_settings_get_value(stn, "display-notifications");
+        gboolean res = false;
+        g_variant_get(var, "b", &res);
+        g_object_unref(var);
+        g_object_unref(stn);
+        return res;
+    } else
     if (WindowHelper::getEnvInfo() == WindowHelper::KDE) {
         QDBusConnection conn = QDBusConnection::sessionBus();
         if (conn.isConnected()) {
