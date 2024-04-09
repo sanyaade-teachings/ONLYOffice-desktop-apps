@@ -127,6 +127,23 @@ static bool isNotificationsEnabled()
                 }
             }
         }
+    } else
+    if (WindowHelper::getEnvInfo() == WindowHelper::XFCE) {
+        QDBusConnection conn = QDBusConnection::sessionBus();
+        if (conn.isConnected()) {
+            QDBusInterface itf("org.xfce.Xfconf", "/org/xfce/Xfconf", "org.xfce.Xfconf", conn);
+            if (itf.isValid()) {
+                QDBusMessage msg = itf.call("GetProperty",  "xfce4-notifyd", "/do-not-disturb");
+                if (msg.type() == QDBusMessage::ReplyMessage && msg.arguments().size() > 0) {
+                    QVariant var = msg.arguments().at(0);
+                    if (var.canConvert<QDBusVariant>()) {
+                        QVariant res = var.value<QDBusVariant>().variant();
+                        if (res.type() == QVariant::Bool && !res.toBool())
+                            return true;
+                    }
+                }
+            }
+        }
     }
     return false;
 }
