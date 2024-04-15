@@ -50,6 +50,7 @@
 # define GetPid() GetCurrentProcessId()
 #else
 # include <QProcess>
+# include <dirent.h>
 # include <unistd.h>
 # include <spawn.h>
 # include <fcntl.h>
@@ -225,7 +226,23 @@ auto runProcess(const tstring &fileName, const tstring &args, bool runAsAdmin = 
         _args[i++] = arg.toLocal8Bit().data();
     _args[i] = NULL;
     pid_t pid;
-    int res = posix_spawn(&pid, fileName.c_str(), NULL, NULL, _args, environ);
+    posix_spawn_file_actions_t acts;
+    posix_spawn_file_actions_init(&acts);
+    char fd_path[64];
+    snprintf(fd_path, sizeof(fd_path), "/proc/%d/fd", getpid());
+    struct dirent *entry;
+    if (DIR *dir = opendir(fd_path)) {
+        while ((entry = readdir(dir)) != NULL) {
+            if (entry->d_type == DT_LNK) {
+                int fd = atoi(entry->d_name);
+                if (fd != STDIN_FILENO && fd != STDOUT_FILENO && fd != STDERR_FILENO)
+                    posix_spawn_file_actions_addclose(&acts, fd);
+            }
+        }
+        closedir(dir);
+    }
+    int res = posix_spawn(&pid, fileName.c_str(), &acts, NULL, _args, environ);
+    posix_spawn_file_actions_destroy(&acts);
     delete[] _args;
     return res == 0;
 #endif

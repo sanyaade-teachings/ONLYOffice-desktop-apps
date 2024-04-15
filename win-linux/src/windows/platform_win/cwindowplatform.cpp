@@ -86,7 +86,7 @@ static void GetFrameMetricsForDpi(FRAME &frame, double dpi, bool maximized = fal
 
     const int left[5][13] = { // Left margin for scales 100-500%
         {0, 0, 0,  0,  0,  1,  1,  1,  2,  2,  2,  2,  2}, // WinXp: for NC width 3px
-        {4, 5, 7,  8,  9,  10, 12, 14, 17, 19, 22, 24, 29}, // WinVista - Win7: for NC width 3px
+        {7, 8, 10, 11, 12, 13, 15, 17, 20, 22, 25, 27, 32}, // WinVista - Win7
         {7, 8, 10, 11, 12, 13, 15, 17, 20, 22, 25, 27, 32}, // Win8 - Win8.1
         {0, 0, 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0}, // Win10
         {0, 0, 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0}  // Win11
@@ -95,7 +95,7 @@ static void GetFrameMetricsForDpi(FRAME &frame, double dpi, bool maximized = fal
 
     const int top[5][13] = { // Top margin for scales 100-500%
         {0,  0,  0,  0,  0,  1,  1,  1,  2,  2,   2,   2,   2}, // WinXp: for NC width 3px
-        {4,  5,  7,  8,  9,  10, 12, 14, 17, 19,  22,  24,  29}, // WinVista - Win7: for NC width 3px
+        {7,  8,  10, 11, 12, 13, 15, 17, 20, 22,  25,  27,  32}, // WinVista - Win7
         {7,  8,  10, 11, 12, 13, 15, 17, 20, 22,  25,  27,  32}, // Win8 - Win8.1
         {31, 38, 45, 52, 58, 65, 72, 85, 99, 112, 126, 139, 167}, // Win10
         {30, 37, 43, 50, 56, 63, 69, 82, 95, 108, 121, 134, 161}  // Win11
@@ -106,8 +106,8 @@ static void GetFrameMetricsForDpi(FRAME &frame, double dpi, bool maximized = fal
         return;
 
     const int left_ofs[5][13] = { // Left offset for scales 100-500%
-        {-3, -3, -3, -3, -3, -3, -3, -3, -3, -3, -3, -3, -3}, // WinXp
-        {-3, -3, -3, -3, -3, -3, -3, -3, -3, -3, -3, -3, -3}, // WinVista - Win7
+        {0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0}, // WinXp
+        {0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0}, // WinVista - Win7
         {0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0}, // Win8 - Win8.1
         {0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0}, // Win10
         {0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0}  // Win11
@@ -115,8 +115,8 @@ static void GetFrameMetricsForDpi(FRAME &frame, double dpi, bool maximized = fal
     frame.left -= left_ofs[row][column];
 
     const int top_ofs[5][13] = { // Top offset for scales 100-500%
-        {-3, -3, -3, -3, -3, -3, -3, -3, -3, -3, -3, -3, -3}, // WinXp
-        {-3, -3, -3, -3, -3, -3, -3, -3, -3, -3, -3, -3, -3}, // WinVista - Win7
+        {0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0}, // WinXp
+        {0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0}, // WinVista - Win7
         {0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0}, // Win8 - Win8.1
         {8,  9,  11, 12, 13, 14, 16, 18, 21, 24, 27, 30, 36}, // Win10
         {7,  8,  9,  10, 11, 12, 13, 15, 17, 19, 21, 23, 28}  // Win11
@@ -156,11 +156,13 @@ CWindowPlatform::CWindowPlatform(const QRect &rect) :
     m_borderless = isCustomWindowStyle();
     if (AscAppManager::isRtlEnabled())
         setLayoutDirection(Qt::RightToLeft);
+    if (m_borderless && Utils::getWinVersion() == WinVer::WinXP)
+        setWindowFlags(windowFlags() | Qt::FramelessWindowHint);
     setGeometry(m_window_rect);
     m_hWnd = (HWND)winId();
     if (m_borderless && Utils::getWinVersion() < WinVer::Win10) {
-        LONG style = ::GetWindowLong(m_hWnd, GWL_STYLE) & ~WS_CAPTION;
-        ::SetWindowLong(m_hWnd, GWL_STYLE, style);
+        LONG style = ::GetWindowLong(m_hWnd, GWL_STYLE) | WS_OVERLAPPEDWINDOW;
+        ::SetWindowLong(m_hWnd, GWL_STYLE, style & ~WS_CAPTION);
     }
 
     setProperty("stabilized", true);
@@ -222,6 +224,12 @@ void CWindowPlatform::adjustGeometry()
             QTimer::singleShot(25, this, [=]() {
                 auto rc = QApplication::desktop()->availableGeometry(this);
                 int offset = 0;
+                if (Utils::getWinVersion() == WinVer::WinXP) {
+                    if (isTaskbarAutoHideOn())
+                        offset += NC_AREA_WIDTH + 1;
+                    int dsp = m_isThemeActive ? 0 : NC_AREA_WIDTH;
+                    rc.adjust(dsp - NC_AREA_WIDTH, dsp - NC_AREA_WIDTH, dsp + NC_AREA_WIDTH, dsp + NC_AREA_WIDTH);
+                } else
                 if (Utils::getWinVersion() > WinVer::WinXP && isTaskbarAutoHideOn())
                     offset += 2;
                 SetWindowPos(m_hWnd, NULL, rc.x(), rc.y(), rc.width(), rc.height() - offset, SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_NOSENDCHANGING);
@@ -230,7 +238,7 @@ void CWindowPlatform::adjustGeometry()
     } else {
         if (Utils::getWinVersion() < WinVer::Win10) {
             int border = qRound(MAIN_WINDOW_BORDER_WIDTH * m_dpiRatio);
-            if (Utils::getWinVersion() <= WinVer::Win7)
+            if (Utils::getWinVersion() == WinVer::WinXP)
                 border -= NC_AREA_WIDTH;
             mrg = QMargins(border, border, border, border);
         } else
@@ -261,6 +269,23 @@ bool CWindowPlatform::event(QEvent * event)
     }
     return CWindowBase::event(event);
 }
+
+#ifdef __OS_WIN_XP
+void CWindowPlatform::resizeEvent(QResizeEvent *ev)
+{
+    CWindowBase::resizeEvent(ev);
+    if (m_borderless && Utils::getWinVersion() == WinVer::WinXP) {
+        RECT rc;
+        GetClientRect(m_hWnd, &rc);
+        if (centralWidget()) {
+            QMargins mrg = contentsMargins();
+            QSize s(rc.right - rc.left - mrg.left() - mrg.right(), rc.bottom - rc.top - mrg.top() - mrg.bottom());
+            centralWidget()->setMaximumSize(s);
+            centralWidget()->resize(s);
+        }
+    }
+}
+#endif
 
 /** Private **/
 

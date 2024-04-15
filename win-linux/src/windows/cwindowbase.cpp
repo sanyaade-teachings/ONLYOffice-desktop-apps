@@ -131,8 +131,9 @@ void CWindowBase::setWindowColors(const QColor& background, const QColor& border
     m_bkgColor = background;
 #ifdef _WIN32
     QString css;
-    if (Utils::getWinVersion() <= Utils::WinVer::Win7) {
+    if (Utils::getWinVersion() == Utils::WinVer::WinXP) {
         css = QString("QMainWindow{background-color: %1;}").arg(background.name());
+        RedrawWindow((HWND)winId(), NULL, NULL, RDW_INVALIDATE | RDW_FRAME | RDW_UPDATENOW); // Apply colors to NC-area
     } else
     if (Utils::getWinVersion() < Utils::WinVer::Win10) {
         css = QString("QMainWindow{border:1px solid %1; background-color: %2;}").arg(border.name(), background.name());
