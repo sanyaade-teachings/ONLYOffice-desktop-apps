@@ -106,9 +106,22 @@ QSize CWindowBase::expectedContentSize(const QRect &rc, bool extended)
     return win_rc.adjusted(brd, extended ? brd : TITLE_HEIGHT * dpi + brd, -brd, -brd).size();
 }
 
-QWidget * CWindowBase::handle() const
+NativeWindowHandle * CWindowBase::handle() const
 {
+#if defined (__linux__) and not defined(DONT_USE_GTK_MAINWINDOW)
+    return this->handle();
+#else
     return qobject_cast<QWidget *>(const_cast<CWindowBase*>(this));
+#endif
+}
+
+QWidget *CWindowBase::qtUnderlay() const
+{
+#if defined (__linux__) and not defined(DONT_USE_GTK_MAINWINDOW)
+    return this->underlay();
+#else
+    return qobject_cast<QWidget *>(const_cast<CWindowBase*>(this));
+#endif
 }
 
 bool CWindowBase::isCustomWindowStyle()
@@ -118,7 +131,7 @@ bool CWindowBase::isCustomWindowStyle()
 
 void CWindowBase::updateScaling(bool resize)
 {
-    double dpi_ratio = Utils::getScreenDpiRatioByWidget(qtCentralWidget());
+    double dpi_ratio = Utils::getScreenDpiRatioByWidget(qtUnderlay());
     if ( dpi_ratio != m_dpiRatio ) {
         setScreenScalingFactor(dpi_ratio, resize);
         adjustGeometry();
@@ -243,7 +256,7 @@ bool CWindowBase::event(QEvent *event)
     if (event->type() == QEvent::ToolTip) {
        QHelpEvent *hlp = static_cast<QHelpEvent*>(event);
        QWidget *wgt = qApp->widgetAt(hlp->globalPos());
-       if (wgt && !qtCentralWidget()->findChild<CToolTip*>()) {
+       if (wgt && !qtUnderlay()->findChild<CToolTip*>()) {
            QString text("");
            if (wgt->property("ToolTip").isValid())
                text = wgt->property("ToolTip").toString();

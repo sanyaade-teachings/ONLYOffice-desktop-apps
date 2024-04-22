@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QIcon>
+#include <QCloseEvent>
 
 
 class GtkMainWindow : public QObject
@@ -17,6 +18,7 @@ public:
     void setWindowTitle(const QString &title);
     void setCentralWidget(QWidget *w);
     void setStyleSheet(const QString &css);
+    void setLayoutDirection(Qt::LayoutDirection direct);
     void setFocus();
     void setAcceptDrops(bool);
     void setMouseTracking(bool);
@@ -28,6 +30,7 @@ public:
     void setMinimumSize(int w, int h);
     void hide() const;
     bool isMaximized();
+    bool isMinimized();
     bool isActiveWindow();
     bool isVisible() const;
     QString windowTitle() const;
@@ -37,6 +40,10 @@ public:
     QRect normalGeometry() const;
     Qt::WindowStates windowState() const;
     QWidget *underlay() const;
+    void *handle();
+
+protected:
+    virtual void closeEvent(QCloseEvent *ev);
 
 private:
     class GtkMainWindowPrivate;

@@ -2,6 +2,9 @@
 #include "gtkmainwindow.h"
 #include <QVBoxLayout>
 #include <gtk/gtkx.h>
+#include <functional>
+
+typedef std::function<void(QCloseEvent*)> FnCloseEvent;
 
 
 static gboolean on_configure_event(GtkWidget *wgt, GdkEvent *ev, gpointer data)
@@ -21,6 +24,16 @@ static gboolean on_window_state_event(GtkWidget *wgt, GdkEventWindowState *ev, g
     return FALSE;
 }
 
+static gboolean on_delete_event(GtkWidget *wgt, GdkEvent* ev, gpointer data)
+{
+    if (FnCloseEvent *close_event = (FnCloseEvent*)data) {
+        QCloseEvent ce;
+        (*close_event)(&ce);
+        return !ce.isAccepted();
+    }
+    return FALSE;
+}
+
 class GtkMainWindow::GtkMainWindowPrivate
 {
 public:
@@ -30,6 +43,7 @@ public:
     GtkWidget *wnd = nullptr;
     QWidget *cw = nullptr;
     GdkWindowState state = GDK_WINDOW_STATE_WITHDRAWN;
+    FnCloseEvent close_event;
 };
 
 GtkMainWindow::GtkMainWindow(QWidget *parent) :
@@ -40,6 +54,8 @@ GtkMainWindow::GtkMainWindow(QWidget *parent) :
     pimpl->wnd = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 //    gtk_window_set_title(GTK_WINDOW(pimpl->wnd), "GtkMainWindow");
     g_signal_connect(G_OBJECT (pimpl->wnd), "window-state-event", G_CALLBACK(on_window_state_event), &pimpl->state);
+    pimpl->close_event = std::bind(&GtkMainWindow::closeEvent, this, std::placeholders::_1);
+    g_signal_connect(G_OBJECT (pimpl->wnd), "delete-event", G_CALLBACK(on_delete_event), &pimpl->close_event);
     gtk_window_set_position(GTK_WINDOW(pimpl->wnd), GtkWindowPosition::GTK_WIN_POS_CENTER);
 //    g_signal_connect(G_OBJECT(pimpl->window), "destroy", G_CALLBACK(gtk_main_quit), NULL);
 
@@ -108,6 +124,11 @@ void GtkMainWindow::setStyleSheet(const QString &css)
     pimpl->cw->setStyleSheet(css);
 }
 
+void GtkMainWindow::setLayoutDirection(Qt::LayoutDirection direct)
+{
+    pimpl->cw->setLayoutDirection(direct);
+}
+
 void GtkMainWindow::setFocus()
 {
     pimpl->cw->setFocus();
@@ -164,6 +185,11 @@ void GtkMainWindow::hide() const
 bool GtkMainWindow::isMaximized()
 {
     return gtk_window_is_maximized(GTK_WINDOW(pimpl->wnd));
+}
+
+bool GtkMainWindow::isMinimized()
+{
+    return pimpl->state & GDK_WINDOW_STATE_ICONIFIED;
 }
 
 bool GtkMainWindow::isActiveWindow()
@@ -225,7 +251,17 @@ Qt::WindowStates GtkMainWindow::windowState() const
     return ws;
 }
 
-QWidget *GtkMainWindow::underlay() const
+QWidget* GtkMainWindow::underlay() const
 {
     return pimpl->cw;
+}
+
+void* GtkMainWindow::handle()
+{
+    return pimpl->wnd;
+}
+
+void GtkMainWindow::closeEvent(QCloseEvent *ev)
+{
+    ev->accept();
 }

@@ -504,7 +504,7 @@ bool CAscApplicationManagerWrapper::processCommonEvent(NSEditorApi::CAscCefMenuE
 #ifdef DOCUMENTSCORE_OPENSSL_SUPPORT
         CAscX509CertificateData * pData = reinterpret_cast<CAscX509CertificateData *>(event->m_pData);
 
-        CDialogCertificateInfo _dialog(mainWindow(), pData->get_Data());
+        CDialogCertificateInfo _dialog(mainWindow()->qtUnderlay(), pData->get_Data());
         _dialog.exec();
 #endif
         return true;
@@ -993,7 +993,7 @@ void CAscApplicationManagerWrapper::handleInputCmd(const std::vector<wstring>& v
             if (!_app.m_pMainWindow->isVisible())
                 _app.m_pMainWindow->show(_app.m_pMainWindow->windowState().testFlag(Qt::WindowMaximized));
 
-            if (CTabPanel * panel = CEditorTools::createEditorPanel(open_opts, _app.m_pMainWindow->contentSize(), _app.m_pMainWindow)) {
+            if (CTabPanel * panel = CEditorTools::createEditorPanel(open_opts, _app.m_pMainWindow->contentSize(), _app.m_pMainWindow->qtUnderlay())) {
                 _app.mainWindow()->attachEditor(panel);
                 QTimer::singleShot(100, &_app, [&]{
                     _app.mainWindow()->bringToTop();
@@ -1276,13 +1276,13 @@ CPresenterWindow * CAscApplicationManagerWrapper::createReporterWindow(void * da
     QWindow *wnd = nullptr;
     if ( m_pMainWindow && m_pMainWindow->holdView(parentid) ) {
         _doc_name = m_pMainWindow->documentName(parentid);
-        wnd = m_pMainWindow->windowHandle();
+        wnd = m_pMainWindow->qtUnderlay()->windowHandle();
     } else {
         CEditorWindow * _window = editorWindowFromViewId(parentid);
 
         if ( _window ) {
             _doc_name = _window->documentName();
-            wnd = _window->windowHandle();
+            wnd = _window->qtUnderlay()->windowHandle();
         }
     }
 
