@@ -49,7 +49,7 @@ CEditorWindow::CEditorWindow(const QRect& rect, CTabPanel* panel)
 CEditorWindow::CEditorWindow(const QRect &rect, const COpenOptions &opts)
     : CWindowPlatform(rect)
 {
-    if (CTabPanel *panel = CEditorTools::createEditorPanel(opts, CWindowBase::expectedContentSize(rect, true), this)) {
+    if (CTabPanel *panel = CEditorTools::createEditorPanel(opts, CWindowBase::expectedContentSize(rect, true), qtUnderlay())) {
         d_ptr = std::unique_ptr<CEditorWindowPrivate>(new CEditorWindowPrivate(this));
         CAscTabData * panel_data = panel->data();
         QRegularExpression re("^ascdesktop:\\/\\/(?:compare|merge|template)");
@@ -260,7 +260,7 @@ void CEditorWindow::init(CTabPanel *panel)
     setObjectName("editorWindow");
     setWindowTitle("_");
     d_ptr.get()->init(panel);
-    m_pMainPanel = createMainPanel(this, d_ptr->panel()->data()->title());
+    m_pMainPanel = createMainPanel(qtUnderlay(), d_ptr->panel()->data()->title());
     setCentralWidget(m_pMainPanel);
 #ifdef __linux__
     if (isCustomWindowStyle()) {

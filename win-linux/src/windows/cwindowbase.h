@@ -53,13 +53,19 @@
 #endif
 #define TITLE_HEIGHT        28
 
-#include <QMainWindow>
 #include <QPushButton>
 #include <memory>
 #include "components/celipsislabel.h"
+#if defined (__linux__) and not defined(DONT_USE_GTK_MAINWINDOW)
+# include "windows/platform_linux/gtkmainwindow.h"
+  typedef GtkMainWindow AscMainWindow;
+#else
+# include <QMainWindow>
+  typedef QMainWindow AscMainWindow;
+#endif
 
 
-class CWindowBase : public QMainWindow
+class CWindowBase : public AscMainWindow
 {
 public:
     explicit CWindowBase(const QRect&);
@@ -68,6 +74,7 @@ public:
     static QRect startRect(const QRect &rc, double &dpi);
     static QSize expectedContentSize(const QRect &rc, bool extended = false);
     QWidget * handle() const;
+    QWidget * qtUnderlay() const;
     bool isCustomWindowStyle();
     void updateScaling(bool resize = true);
     virtual void adjustGeometry() = 0;

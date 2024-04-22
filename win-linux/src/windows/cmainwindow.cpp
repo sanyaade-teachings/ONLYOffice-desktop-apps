@@ -71,7 +71,7 @@ CMainWindow::CMainWindow(const QRect &rect) :
     m_savePortal(QString())
 {
     setObjectName("MainWindow");
-    m_pMainPanel = createMainPanel(this);
+    m_pMainPanel = createMainPanel(qtUnderlay());
     setCentralWidget(m_pMainPanel);
     QString css{AscAppManager::getWindowStylesheets(m_dpiRatio)};
 #ifdef __linux__
@@ -465,7 +465,7 @@ void CMainWindow::attachStartPanel(QCefView * const view)
 #ifdef __linux
 void CMainWindow::setMouseTracking(bool enable)
 {
-    QWidget::setMouseTracking(enable);
+    CWindowPlatform::setMouseTracking(enable);
     m_pMainPanel->findChild<QLabel *>("labelAppTitle")->setMouseTracking(enable);
 
     m_boxTitleBtns->setMouseTracking(enable);
@@ -892,7 +892,7 @@ void CMainWindow::onFileLocation(int uid, QString param)
 
             if ( !(_tab_index < 0) ) {
                 if (windowState().testFlag(Qt::WindowMinimized))
-                    QMainWindow::setWindowState(Qt::WindowNoState);
+                    AscMainWindow::setWindowState(Qt::WindowNoState);
 
                 toggleButtonMain(false, true);
                 m_pTabs->setCurrentIndex(_tab_index);
@@ -1027,7 +1027,7 @@ void CMainWindow::onDocumentDownload(void * info)
 {
     CAscDownloadFileInfo *pData = reinterpret_cast<CAscDownloadFileInfo*>(info);
     if (!m_pWidgetDownload && !pData->get_IsCanceled() && !pData->get_FilePath().empty()) {
-        m_pWidgetDownload = new CDownloadWidget(this);
+        m_pWidgetDownload = new CDownloadWidget(qtUnderlay());
         connect(m_pWidgetDownload, &QWidget::destroyed, this, [=]() {
             m_pWidgetDownload = nullptr;
         });

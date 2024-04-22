@@ -53,11 +53,15 @@ protected:
     virtual bool event(QEvent *event) override;
     virtual bool nativeEvent(const QByteArray&, void*, long*) final;
     virtual void setScreenScalingFactor(double, bool resize = true) override;
+#ifdef DONT_USE_GTK_MAINWINDOW
     virtual void paintEvent(QPaintEvent *event) override;
+#endif
     virtual void onLayoutDirectionChanged() = 0;
 
 private:
+#ifdef DONT_USE_GTK_MAINWINDOW
     virtual void mouseMoveEvent(QMouseEvent *) final;
+#endif
     virtual void mousePressEvent(QMouseEvent *) final;
     virtual void mouseReleaseEvent(QMouseEvent *) final;
     virtual void mouseDoubleClickEvent(QMouseEvent *) final;

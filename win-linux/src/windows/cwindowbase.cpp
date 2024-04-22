@@ -66,7 +66,7 @@ public:
 
 
 CWindowBase::CWindowBase(const QRect& rect)
-    : QMainWindow(nullptr)
+    : AscMainWindow(nullptr)
     , m_pTopButtons(3, nullptr)
     , pimpl{new CWindowBasePrivate}
     , m_windowActivated(false)
@@ -118,7 +118,7 @@ bool CWindowBase::isCustomWindowStyle()
 
 void CWindowBase::updateScaling(bool resize)
 {
-    double dpi_ratio = Utils::getScreenDpiRatioByWidget(this);
+    double dpi_ratio = Utils::getScreenDpiRatioByWidget(qtCentralWidget());
     if ( dpi_ratio != m_dpiRatio ) {
         setScreenScalingFactor(dpi_ratio, resize);
         adjustGeometry();
@@ -225,7 +225,7 @@ void CWindowBase::saveWindowState()
 
 void CWindowBase::moveToPrimaryScreen()
 {
-    QMainWindow::showNormal();
+    AscMainWindow::showNormal();
     QRect rect = QApplication::primaryScreen()->availableGeometry();
     double dpiRatio = Utils::getScreenDpiRatio(rect.topLeft());
     m_window_rect = QRect(rect.translated(100, 100).topLeft() * dpiRatio,
@@ -243,7 +243,7 @@ bool CWindowBase::event(QEvent *event)
     if (event->type() == QEvent::ToolTip) {
        QHelpEvent *hlp = static_cast<QHelpEvent*>(event);
        QWidget *wgt = qApp->widgetAt(hlp->globalPos());
-       if (wgt && !findChild<CToolTip*>()) {
+       if (wgt && !qtCentralWidget()->findChild<CToolTip*>()) {
            QString text("");
            if (wgt->property("ToolTip").isValid())
                text = wgt->property("ToolTip").toString();
@@ -253,7 +253,7 @@ bool CWindowBase::event(QEvent *event)
            }
        }
     }
-    return QMainWindow::event(event);
+    return AscMainWindow::event(event);
 }
 
 void CWindowBase::setScreenScalingFactor(double factor, bool resize)
@@ -289,19 +289,19 @@ void CWindowBase::applyWindowState()
 
 void CWindowBase::setWindowTitle(const QString& title)
 {
-    QMainWindow::setWindowTitle(title);
+    AscMainWindow::setWindowTitle(title);
     if (m_labelTitle)
         m_labelTitle->setText(title);
 }
 
 void CWindowBase::onMinimizeEvent()
 {
-    QMainWindow::showMinimized();
+    AscMainWindow::showMinimized();
 }
 
 void CWindowBase::onMaximizeEvent()
 {
-    isMaximized() ? QMainWindow::showNormal() : QMainWindow::showMaximized();
+    isMaximized() ? AscMainWindow::showNormal() : AscMainWindow::showMaximized();
 }
 
 void CWindowBase::onCloseEvent()
@@ -318,7 +318,7 @@ void CWindowBase::focus()
 
 void CWindowBase::showEvent(QShowEvent *event)
 {
-    QMainWindow::showEvent(event);
+    AscMainWindow::showEvent(event);
     if (!m_windowActivated) {
         m_windowActivated = true;
         adjustGeometry();

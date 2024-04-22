@@ -190,6 +190,7 @@ core_linux {
     INCLUDEPATH += $$PWD/extras/update-daemon/src/classes
 
     HEADERS +=  $$PWD/src/windows/platform_linux/cx11decoration.h \
+                $$PWD/src/windows/platform_linux/gtkmainwindow.h \
                 #$$PWD/src/windows/platform_linux/gtk_addon.h \
                 $$PWD/src/windows/platform_linux/cwindowplatform.h \
                 $$PWD/src/platform_linux/cdialogopenssl.h \
@@ -204,6 +205,7 @@ core_linux {
                 $$PWD/extras/update-daemon/src/classes/csocket.h
 
     SOURCES +=  $$PWD/src/windows/platform_linux/cx11decoration.cpp \
+                $$PWD/src/windows/platform_linux/gtkmainwindow.cpp \
                 $$PWD/src/windows/platform_linux/cwindowplatform.cpp \
                 $$PWD/src/platform_linux/cdialogopenssl.cpp \
                 $$PWD/src/platform_linux/cdialogcertificateinfo.cpp \

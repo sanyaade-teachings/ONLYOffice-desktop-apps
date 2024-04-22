@@ -85,9 +85,9 @@ void CWindowPlatform::bringToTop()
 
 void CWindowPlatform::show(bool maximized)
 {
-    QMainWindow::show();
+    AscMainWindow::show();
     if (maximized) {
-        QMainWindow::setWindowState(Qt::WindowMaximized);
+        AscMainWindow::setWindowState(Qt::WindowMaximized);
     }
 }
 
@@ -159,6 +159,7 @@ void CWindowPlatform::setScreenScalingFactor(double factor, bool resize)
     CWindowBase::setScreenScalingFactor(factor, resize);
 }
 
+#ifdef DONT_USE_GTK_MAINWINDOW
 void CWindowPlatform::paintEvent(QPaintEvent *event)
 {
     CWindowBase::paintEvent(event);
@@ -181,14 +182,17 @@ void CWindowPlatform::paintEvent(QPaintEvent *event)
     pnt.strokePath(path, QPen(m_brdColor, 1));
     pnt.end();
 }
+#endif
 
 /** Private **/
 
+#ifdef DONT_USE_GTK_MAINWINDOW
 void CWindowPlatform::mouseMoveEvent(QMouseEvent *e)
 {
     if (!property("blocked").toBool())
         CX11Decoration::dispatchMouseMove(e);
 }
+#endif
 
 void CWindowPlatform::mousePressEvent(QMouseEvent *e)
 {
