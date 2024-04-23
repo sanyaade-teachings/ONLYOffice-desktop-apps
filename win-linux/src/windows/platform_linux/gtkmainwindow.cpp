@@ -4,7 +4,10 @@
 #include <gtk/gtkx.h>
 #include <functional>
 
+typedef std::function<bool(QEvent *ev)> FnEvent;
+typedef std::function<bool(const QByteArray&, void*, long*)> FnNativeEvent;
 typedef std::function<void(QCloseEvent*)> FnCloseEvent;
+typedef std::function<void(QShowEvent*)> FnShowEvent;
 
 
 static gboolean on_configure_event(GtkWidget *wgt, GdkEvent *ev, gpointer data)
@@ -12,7 +15,8 @@ static gboolean on_configure_event(GtkWidget *wgt, GdkEvent *ev, gpointer data)
     if (QWidget *w = (QWidget*)data) {
         gint x = 0, y = 0;
         gtk_window_get_size(GTK_WINDOW(wgt), &x, &y);
-        w->resize(x, y);
+        gint f = gtk_widget_get_scale_factor(wgt);
+        w->resize(f*x, f*y);
     }
     return FALSE;
 }
@@ -34,14 +38,57 @@ static gboolean on_delete_event(GtkWidget *wgt, GdkEvent* ev, gpointer data)
     return FALSE;
 }
 
+static void on_destroy(GtkWidget *wgt, gpointer data)
+{
+
+}
+
+class QUnderlay : public QWidget
+{
+public:
+    QUnderlay(QWidget *p, Qt::WindowFlags f, const FnEvent &event, const FnNativeEvent &native_event, const FnShowEvent &show_event) :
+        QWidget(p, f),
+        m_event(event),
+        m_native_event(native_event),
+        m_show_event(show_event)
+    {}
+    ~QUnderlay()
+    {}
+    virtual bool event(QEvent *ev) override
+    {
+        if (m_event(ev))
+            return true;
+        return QWidget::event(ev);
+    }
+    virtual bool nativeEvent(const QByteArray &ev_type, void *msg, long *res) override
+    {
+        if (m_native_event(ev_type, msg, res))
+            return true;
+        return QWidget::nativeEvent(ev_type, msg, res);
+    }
+    virtual void showEvent(QShowEvent* ev) override
+    {
+        QWidget::showEvent(ev);
+        m_show_event(ev);
+    }
+
+private:
+    FnEvent m_event;
+    FnNativeEvent m_native_event;
+    FnShowEvent m_show_event;
+};
+
 class GtkMainWindow::GtkMainWindowPrivate
 {
 public:
     GtkMainWindowPrivate() {}
-    ~GtkMainWindowPrivate() {}
-
+    ~GtkMainWindowPrivate()
+    {
+        delete cw;
+        gtk_widget_destroy(GTK_WIDGET(wnd));
+    }
     GtkWidget *wnd = nullptr;
-    QWidget *cw = nullptr;
+    QUnderlay *cw = nullptr;
     GdkWindowState state = GDK_WINDOW_STATE_WITHDRAWN;
     FnCloseEvent close_event;
 };
@@ -56,8 +103,8 @@ GtkMainWindow::GtkMainWindow(QWidget *parent) :
     g_signal_connect(G_OBJECT (pimpl->wnd), "window-state-event", G_CALLBACK(on_window_state_event), &pimpl->state);
     pimpl->close_event = std::bind(&GtkMainWindow::closeEvent, this, std::placeholders::_1);
     g_signal_connect(G_OBJECT (pimpl->wnd), "delete-event", G_CALLBACK(on_delete_event), &pimpl->close_event);
+    g_signal_connect(G_OBJECT(pimpl->wnd), "destroy", G_CALLBACK(on_destroy), NULL);
     gtk_window_set_position(GTK_WINDOW(pimpl->wnd), GtkWindowPosition::GTK_WIN_POS_CENTER);
-//    g_signal_connect(G_OBJECT(pimpl->window), "destroy", G_CALLBACK(gtk_main_quit), NULL);
 
     GtkCssProvider *provider = gtk_css_provider_new();
     gtk_css_provider_load_from_data(provider, "decoration {border-radius: 3px 3px 0px 0px;}", -1, NULL);
@@ -73,8 +120,11 @@ GtkMainWindow::GtkMainWindow(QWidget *parent) :
     gtk_container_add(GTK_CONTAINER(pimpl->wnd), socket);
 //    gtk_widget_realize(socket);
 
-    pimpl->cw = new QWidget(nullptr, /*Qt::FramelessWindowHint |*/ Qt::BypassWindowManagerHint);
-    pimpl->cw->setObjectName("centralWidget");
+    pimpl->cw = new QUnderlay(nullptr, /*Qt::FramelessWindowHint |*/ Qt::BypassWindowManagerHint,
+                              std::bind(&GtkMainWindow::event, this, std::placeholders::_1),
+                              std::bind(&GtkMainWindow::nativeEvent, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3),
+                              std::bind(&GtkMainWindow::showEvent, this, std::placeholders::_1));
+    pimpl->cw->setObjectName("underlay");
     g_signal_connect(G_OBJECT(pimpl->wnd), "configure-event", G_CALLBACK(on_configure_event), pimpl->cw);
     QVBoxLayout *lut = new QVBoxLayout;
     lut->setContentsMargins(0,0,0,0);
@@ -90,8 +140,9 @@ GtkMainWindow::~GtkMainWindow()
 
 void GtkMainWindow::setGeometry(const QRect &rc)
 {
-    gtk_window_move(GTK_WINDOW(pimpl->wnd), rc.x(), rc.y());
-    gtk_window_set_default_size(GTK_WINDOW(pimpl->wnd), rc.width(), rc.height());
+    gint f = gtk_widget_get_scale_factor(pimpl->wnd);
+    gtk_window_move(GTK_WINDOW(pimpl->wnd), rc.x()/f, rc.y()/f);
+    gtk_window_set_default_size(GTK_WINDOW(pimpl->wnd), rc.width()/f, rc.height()/f);
 //    gtk_window_resize(GTK_WINDOW(pimpl->wnd), rc.width(), rc.height());
 }
 
@@ -144,6 +195,23 @@ void GtkMainWindow::setMouseTracking(bool enable)
     pimpl->cw->setMouseTracking(enable);
 }
 
+void GtkMainWindow::setWindowState(Qt::WindowStates ws)
+{
+    if (ws.testFlag(Qt::WindowMaximized))
+        gtk_window_maximize(GTK_WINDOW(pimpl->wnd));
+    if (ws.testFlag(Qt::WindowMinimized))
+        gtk_window_iconify(GTK_WINDOW(pimpl->wnd));
+    if (ws.testFlag(Qt::WindowFullScreen))
+        gtk_window_fullscreen(GTK_WINDOW(pimpl->wnd));
+    if (ws.testFlag(Qt::WindowActive))
+        gtk_window_present(GTK_WINDOW(pimpl->wnd));
+}
+
+void GtkMainWindow::setFocusPolicy(Qt::FocusPolicy fp)
+{
+    pimpl->cw->setFocusPolicy(fp);
+}
+
 void GtkMainWindow::show()
 {
     gtk_widget_show_all(pimpl->wnd);
@@ -177,6 +245,16 @@ void GtkMainWindow::setMinimumSize(int w, int h)
     gtk_widget_set_size_request(pimpl->wnd, w, h);
 }
 
+void GtkMainWindow::updateGeometry()
+{
+    pimpl->cw->updateGeometry();
+}
+
+void GtkMainWindow::update()
+{
+    pimpl->cw->update();
+}
+
 void GtkMainWindow::hide() const
 {
     gtk_widget_hide(pimpl->wnd);
@@ -202,9 +280,14 @@ bool GtkMainWindow::isVisible() const
     return gtk_widget_is_visible(pimpl->wnd);
 }
 
+bool GtkMainWindow::isHidden() const
+{
+    return !gtk_widget_is_visible(pimpl->wnd);
+}
+
 QString GtkMainWindow::windowTitle() const
 {
-    gtk_window_get_title(GTK_WINDOW(pimpl->wnd));
+    return gtk_window_get_title(GTK_WINDOW(pimpl->wnd));
 }
 
 QPoint GtkMainWindow::mapFromGlobal(const QPoint &pt) const
@@ -239,15 +322,15 @@ Qt::WindowStates GtkMainWindow::windowState() const
 {
     Qt::WindowStates ws;
     if (pimpl->state & GDK_WINDOW_STATE_WITHDRAWN)
-        ws.setFlag(Qt::WindowState::WindowNoState);
+        ws.setFlag(Qt::WindowNoState);
     if (pimpl->state & GDK_WINDOW_STATE_MAXIMIZED)
-        ws.setFlag(Qt::WindowState::WindowMaximized);
+        ws.setFlag(Qt::WindowMaximized);
     if (pimpl->state & GDK_WINDOW_STATE_ICONIFIED)
-        ws.setFlag(Qt::WindowState::WindowMinimized);
+        ws.setFlag(Qt::WindowMinimized);
     if (pimpl->state & GDK_WINDOW_STATE_FULLSCREEN)
-        ws.setFlag(Qt::WindowState::WindowFullScreen);
+        ws.setFlag(Qt::WindowFullScreen);
     if (pimpl->state & GDK_WINDOW_STATE_FOCUSED)
-        ws.setFlag(Qt::WindowState::WindowActive);
+        ws.setFlag(Qt::WindowActive);
     return ws;
 }
 
@@ -256,12 +339,27 @@ QWidget* GtkMainWindow::underlay() const
     return pimpl->cw;
 }
 
-void* GtkMainWindow::handle()
+void* GtkMainWindow::handle() const
 {
     return pimpl->wnd;
 }
 
+bool GtkMainWindow::event(QEvent *ev)
+{
+    return QObject::event(ev);
+}
+
+bool GtkMainWindow::nativeEvent(const QByteArray &ev_type, void *msg, long *res)
+{
+    return false;
+}
+
 void GtkMainWindow::closeEvent(QCloseEvent *ev)
+{
+    ev->accept();
+}
+
+void GtkMainWindow::showEvent(QShowEvent *ev)
 {
     ev->accept();
 }

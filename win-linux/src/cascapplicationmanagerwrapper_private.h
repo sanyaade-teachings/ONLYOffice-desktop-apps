@@ -184,7 +184,7 @@ public:
                     if ( !match.hasMatch() ) {
                         QFileInfo _info(opts.url);
                         if ( /*!data->get_IsRecover() &&*/ !_info.exists() ) {
-                            int res = CMessage::showMessage(m_appmanager.mainWindow()->handle(),
+                            int res = CMessage::showMessage(m_appmanager.mainWindow()->qtUnderlay(),
                                                             QObject::tr("%1 doesn't exists!<br>Remove file from the list?").arg(_info.fileName()),
                                                             MsgType::MSG_WARN, MsgBtns::mbYesDefNo);
                             if ( res == MODAL_RESULT_YES ) {
@@ -229,7 +229,7 @@ public:
 
                         if ( !openDocument(opts) ) {
                             QFileInfo _info(QString::fromStdWString(file_path));
-                            CMessage::error(m_appmanager.mainWindow()->handle(),
+                            CMessage::error(m_appmanager.mainWindow()->qtUnderlay(),
                                             QObject::tr("File %1 cannot be opened or doesn't exists.").arg(_info.fileName()));
                         }
                         else Utils::addToRecent(file_path);
@@ -354,7 +354,7 @@ public:
             }
         } else {
             m_appmanager.gotoMainWindow(size_t(m_appmanager.editorWindowFromViewId(opts.parent_id)));
-            if (CTabPanel * panel = CEditorTools::createEditorPanel(opts, mainWindow()->contentSize(), mainWindow())) {
+            if (CTabPanel * panel = CEditorTools::createEditorPanel(opts, mainWindow()->contentSize(), mainWindow()->qtUnderlay())) {
                 CAscTabData * panel_data = panel->data();
                 QRegularExpression re("^ascdesktop:\\/\\/(?:compare|merge|template)");
                 if ( re.match(QString::fromStdWString(panel_data->url())).hasMatch() ) {
@@ -372,9 +372,9 @@ public:
 
 #ifdef DOCUMENTSCORE_OPENSSL_SUPPORT
     auto selectSSLSertificate(int viewid) -> void {
-        QWidget * parent = m_appmanager.editorWindowFromViewId(viewid);
+        QWidget * parent = m_appmanager.editorWindowFromViewId(viewid)->qtUnderlay();
         if ( !parent ) {
-            parent = m_appmanager.mainWindowFromViewId(viewid);
+            parent = m_appmanager.mainWindowFromViewId(viewid)->qtUnderlay();
         }
 
         if ( parent ) {

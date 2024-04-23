@@ -118,7 +118,7 @@ int CEditorWindow::closeWindow()
 
         bringToTop();
 
-        _reply = CMessage::showMessage(handle(),
+        _reply = CMessage::showMessage(qtUnderlay(),
                                        tr("%1 has been changed. Save changes?").arg(panel->data()->title(true)),
                                        MsgType::MSG_WARN, MsgBtns::mbYesDefNoCancel);
 //            modal_res = mess.warning(getSaveMessage().arg(m_pTabs->titleByIndex(index)));
@@ -250,6 +250,9 @@ QWidget * CEditorWindow::createMainPanel(QWidget * parent, const QString& title)
     mainGridLayout->setRowStretch(1,1);
 
     if (isCustomWindowStyle() && !d_ptr->panel()->data()->hasError()) {
+#if defined (__linux__) and not defined(DONT_USE_GTK_MAINWINDOW)
+        m_boxTitleBtns->setParent(nullptr);
+#endif
         mainGridLayout->addWidget(m_boxTitleBtns, 1, 1, Qt::AlignTop);
     }
     return mainPanel;

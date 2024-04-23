@@ -1458,10 +1458,10 @@ ParentHandle CAscApplicationManagerWrapper::windowHandleFromId(int id)
     APP_CAST(_app);
 
     CMainWindow * w = _app.mainWindowFromViewId(id);
-    if ( w ) return w->handle();
+    if ( w ) return w->qtUnderlay();
     else {
         CEditorWindow * e = _app.editorWindowFromViewId(id);
-        if ( e ) return e->handle();
+        if ( e ) return e->qtUnderlay();
     }
 
     return nullptr;

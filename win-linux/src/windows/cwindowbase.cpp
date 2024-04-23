@@ -106,10 +106,10 @@ QSize CWindowBase::expectedContentSize(const QRect &rc, bool extended)
     return win_rc.adjusted(brd, extended ? brd : TITLE_HEIGHT * dpi + brd, -brd, -brd).size();
 }
 
-NativeWindowHandle * CWindowBase::handle() const
+NativeWindowHandle CWindowBase::handle() const
 {
 #if defined (__linux__) and not defined(DONT_USE_GTK_MAINWINDOW)
-    return this->handle();
+    return AscMainWindow::handle();
 #else
     return qobject_cast<QWidget *>(const_cast<CWindowBase*>(this));
 #endif
@@ -118,7 +118,7 @@ NativeWindowHandle * CWindowBase::handle() const
 QWidget *CWindowBase::qtUnderlay() const
 {
 #if defined (__linux__) and not defined(DONT_USE_GTK_MAINWINDOW)
-    return this->underlay();
+    return underlay();
 #else
     return qobject_cast<QWidget *>(const_cast<CWindowBase*>(this));
 #endif
@@ -160,7 +160,11 @@ void CWindowBase::setWindowColors(const QColor& background, const QColor& border
         css = QString("QMainWindow{background-color: %1;}").arg(background.name());
     }
 #else
+# ifdef DONT_USE_GTK_MAINWINDOW
     QString css = QString("QMainWindow{border:1px solid %1; background-color: %2;}").arg(border.name(), background.name());
+# else
+    QString css = QString("QWidget#underlay{border: none; background: transparent;}");
+# endif
 #endif
     setStyleSheet(css);
 }

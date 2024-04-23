@@ -47,15 +47,17 @@
 
 CWindowPlatform::CWindowPlatform(const QRect &rect) :
     CWindowBase(rect),
-    CX11Decoration(this)
+    CX11Decoration(this->qtUnderlay())
 {
     if (AscAppManager::isRtlEnabled())
         setLayoutDirection(Qt::RightToLeft);
+#ifdef DONT_USE_GTK_MAINWINDOW
     if (isCustomWindowStyle()) {
         if (QX11Info::isCompositingManagerRunning())
             setAttribute(Qt::WA_TranslucentBackground);
         CX11Decoration::turnOff();
     }
+#endif
     setIsCustomWindowStyle(!CX11Decoration::isDecorated());
     setFocusPolicy(Qt::StrongFocus);
     setProperty("stabilized", true);
@@ -101,8 +103,10 @@ void CWindowPlatform::setWindowColors(const QColor& background, const QColor& bo
 
 void CWindowPlatform::adjustGeometry()
 {
+#ifdef DONT_USE_GTK_MAINWINDOW
     int border = (CX11Decoration::isDecorated() || isMaximized()) ? 0 : qRound(CX11Decoration::customWindowBorderWith() * m_dpiRatio);
     setContentsMargins(border, border, border, border);
+#endif
 }
 
 /** Protected **/

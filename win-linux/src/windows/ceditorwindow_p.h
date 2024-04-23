@@ -516,7 +516,7 @@ public:
 
     void onDocumentSaveInnerRequest(int) override
     {
-        int reply = CMessage::showMessage(window->handle(),
+        int reply = CMessage::showMessage(window->qtUnderlay(),
                                           CEditorWindow::tr("Document must be saved to continue.<br>Save the document?"),
                                           MsgType::MSG_CONFIRM, MsgBtns::mbYesDefNo);
         CAscEditorSaveQuestion * pData = new CAscEditorSaveQuestion;
@@ -565,7 +565,7 @@ public:
         if ( isPrinting ) return;
         isPrinting = true;
 
-        QWidget *parent = window->handle();
+        QWidget *parent = window->qtUnderlay();
 #ifdef Q_OS_LINUX
         WindowHelper::CParentDisable oDisabler(parent);
 #endif
@@ -660,7 +660,7 @@ public:
                     break;
                 }
 
-                CEditorTools::print({m_panel->cef(), pContext, &page_ranges, window->handle()});
+                CEditorTools::print({m_panel->cef(), pContext, &page_ranges, window->qtUnderlay()});
             }
 
             pContext->Release();
@@ -815,7 +815,7 @@ public:
             if (!path.empty()) {
                 Utils::openFileLocation(QString::fromStdWString(path));
             } else
-                CMessage::info(window->handle(), CEditorWindow::tr("Document must be saved firstly."));
+                CMessage::info(window->qtUnderlay(), CEditorWindow::tr("Document must be saved firstly."));
         } else {
             /**
             * portals open in tabbar in main window only

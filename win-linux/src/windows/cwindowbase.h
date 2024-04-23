@@ -75,7 +75,7 @@ public:
 
     static QRect startRect(const QRect &rc, double &dpi);
     static QSize expectedContentSize(const QRect &rc, bool extended = false);
-    NativeWindowHandle * handle() const;
+    NativeWindowHandle handle() const;
     QWidget * qtUnderlay() const;
     bool isCustomWindowStyle();
     void updateScaling(bool resize = true);

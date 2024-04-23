@@ -262,7 +262,7 @@ void CMainWindow::close()
                 for (int i = 0; i < m_pTabs->count(); i++) {
                     if (!m_pTabs->modifiedByIndex(i)) {
                         bool dontAskAgain = false;
-                        int res = CMessage::showMessage(this, tr("More than one document is open.<br>Close the window anyway?"),
+                        int res = CMessage::showMessage(qtUnderlay(), tr("More than one document is open.<br>Close the window anyway?"),
                                                            MsgType::MSG_WARN, MsgBtns::mbYesNo, &dontAskAgain,
                                                            tr("Don't ask again."));
                         if (dontAskAgain)
@@ -652,7 +652,7 @@ int CMainWindow::trySaveDocument(int index)
         toggleButtonMain(false);
         m_pTabs->setCurrentIndex(index);
 
-        modal_res = CMessage::showMessage(this, getSaveMessage().arg(m_pTabs->titleByIndex(index)),
+        modal_res = CMessage::showMessage(qtUnderlay(), getSaveMessage().arg(m_pTabs->titleByIndex(index)),
                                           MsgType::MSG_WARN, MsgBtns::mbYesDefNoCancel);
         switch (modal_res) {
         case MODAL_RESULT_NO: break;
@@ -768,7 +768,7 @@ void CMainWindow::doOpenLocalFile(COpenOptions& opts)
     if (!info.isFile()) { return; }
     if (!info.isReadable()) {
         QTimer::singleShot(0, this, [=] {
-            CMessage::error(this, QObject::tr("Access to file '%1' is denied!").arg(opts.url));
+            CMessage::error(qtUnderlay(), QObject::tr("Access to file '%1' is denied!").arg(opts.url));
         });
         return;
     }
@@ -780,7 +780,7 @@ void CMainWindow::doOpenLocalFile(COpenOptions& opts)
     } else
     if (result == -255) {
         QTimer::singleShot(0, this, [=] {
-            CMessage::error(this, tr("File format not supported."));
+            CMessage::error(qtUnderlay(), tr("File format not supported."));
         });
     }
     bringToTop();
@@ -804,7 +804,7 @@ void CMainWindow::onLocalFileRecent(const COpenOptions& opts)
     if ( !match.hasMatch() ) {
         QFileInfo _info(opts.url);
         if ( opts.srctype != etRecoveryFile && !_info.exists() ) {
-            int modal_res = CMessage::showMessage(this, tr("%1 doesn't exists!<br>Remove file from the list?").arg(_info.fileName()),
+            int modal_res = CMessage::showMessage(qtUnderlay(), tr("%1 doesn't exists!<br>Remove file from the list?").arg(_info.fileName()),
                                                   MsgType::MSG_WARN, MsgBtns::mbYesDefNo);
             if (modal_res == MODAL_RESULT_YES) {
                 AscAppManager::sendCommandTo(SEND_TO_ALL_START_PAGE, "file:skip", QString::number(opts.id));
@@ -820,7 +820,7 @@ void CMainWindow::onLocalFileRecent(const COpenOptions& opts)
         toggleButtonMain(false);
     } else
     if (result == -255) {
-        CMessage::error(this, tr("File format not supported."));
+        CMessage::error(qtUnderlay(), tr("File format not supported."));
     }
 }
 
@@ -863,7 +863,7 @@ void CMainWindow::onFileLocation(int uid, QString param)
 //            else {
 //            }
         } else {
-            CMessage::info(this, tr("Document must be saved firstly."));
+            CMessage::info(qtUnderlay(), tr("Document must be saved firstly."));
         }
     } else {
         static QRegularExpression _re("^((?:https?:\\/{2})?[^\\s\\/]+)", QRegularExpression::CaseInsensitiveOption);
@@ -1012,7 +1012,7 @@ void CMainWindow::onDocumentSave(int id, bool cancel)
 
 void CMainWindow::onDocumentSaveInnerRequest(int id)
 {
-    int modal_res = CMessage::showMessage(this, tr("Document must be saved to continue.<br>Save the document?"),
+    int modal_res = CMessage::showMessage(qtUnderlay(), tr("Document must be saved to continue.<br>Save the document?"),
                                           MsgType::MSG_CONFIRM, MsgBtns::mbYesDefNo);
     CAscEditorSaveQuestion * pData = new CAscEditorSaveQuestion;
     pData->put_Value(modal_res == MODAL_RESULT_YES);
@@ -1232,7 +1232,7 @@ void CMainWindow::onDocumentPrint(void * opts)
                 break;
             }
 
-            CEditorTools::print({pView, pContext, &page_ranges, this});
+            CEditorTools::print({pView, pContext, &page_ranges, qtUnderlay()});
         }
 
         pContext->Release();
@@ -1313,7 +1313,7 @@ void CMainWindow::onKeyDown(void * eventData)
         if ( _is_ctrl && _is_shift ) {
             GET_REGISTRY_USER(reg_user)
 
-            CFileDialogWrapper _dlg(this);
+            CFileDialogWrapper _dlg(qtUnderlay());
             QString _dir = _dlg.selectFolder(reg_user.contains("helpUrl") ?
                         reg_user.value("helpUrl").toString() : Utils::lastPath(LOCAL_PATH_OPEN));
 
@@ -1324,9 +1324,9 @@ void CMainWindow::onKeyDown(void * eventData)
                     EditorJSVariables::setVariable("helpUrl", _dir + "/apps");
                     EditorJSVariables::apply();
 
-                    CMessage::error(this, "Successfully");
+                    CMessage::error(qtUnderlay(), "Successfully");
                 } else {
-                    CMessage::error(this, "Failed");
+                    CMessage::error(qtUnderlay(), "Failed");
                 }
             }
         }
