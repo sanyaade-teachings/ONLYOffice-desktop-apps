@@ -15,6 +15,9 @@ QPushButton#toolButtonMinimize,
 QPushButton#toolButtonClose,
 QPushButton#toolButtonMain,
 QPushButton#toolButtonDownload {border: none; margin: 0; padding: 0; border-radius: 0;}
+#mainPanel[gtk-window=true] {border-top-left-radius: 6px; border-top-right-radius: 6px;}
+#mainPanel[gtk-window=true] #CX11Caption {border-top-left-radius: 0px; border-top-right-radius: 6px;}
+#mainPanel[gtk-window=true][rtl=true] #CX11Caption {border-top-left-radius: 6px; border-top-right-radius: 0px;}
 #mainPanel[rtl-font=true] #labelAppTitle {font-family: "Segoe UI", "Traditional Arabic", "Noto Sans";}
 
 QPushButton#toolButtonMaximize,
@@ -52,6 +55,8 @@ QPushButton#toolButtonMain[class=normal],
 QPushButton#toolButtonMain[class=normal]:hover {color: #fff; border-bottom: 0 none;}
 QPushButton#toolButtonMain[class=normal] {background: #f1f1f1; border-color: #dfdfdf;}
 QPushButton#toolButtonMain[class=normal]:hover {background: #cecece;}
+#mainPanel[gtk-window=true] QPushButton#toolButtonMain {border-top-left-radius: 6px; border-top-right-radius: 0px;}
+#mainPanel[gtk-window=true][rtl=true] QPushButton#toolButtonMain {border-top-left-radius: 0px; border-top-right-radius: 6px;}
 #mainPanel[rtl=true] QPushButton#toolButtonMain[class=normal] {border-color: #dfdfdf;}
 
 QPushButton::menu-indicator {width: 0px; height: 0px;}

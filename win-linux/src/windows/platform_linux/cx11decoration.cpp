@@ -41,7 +41,11 @@
 #include <X11/Xutil.h>
 #include "platform_linux/xcbutils.h"
 
-#define CUSTOM_BORDER_WIDTH MAIN_WINDOW_BORDER_WIDTH
+#ifdef DONT_USE_GTK_MAINWINDOW
+# define CUSTOM_BORDER_WIDTH MAIN_WINDOW_BORDER_WIDTH
+#else
+# define CUSTOM_BORDER_WIDTH 0
+#endif
 #define MOTION_TIMER_MS 250
 
 const int k_NET_WM_MOVERESIZE_SIZE_TOPLEFT =     0;

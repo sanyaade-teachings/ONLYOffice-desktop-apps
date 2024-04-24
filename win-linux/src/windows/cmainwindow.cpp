@@ -380,6 +380,9 @@ QWidget* CMainWindow::createMainPanel(QWidget *parent)
 #ifdef _WIN32
     mainPanel->setProperty("unix", false);
 #else
+# ifndef DONT_USE_GTK_MAINWINDOW
+    mainPanel->setProperty("gtk-window", true);
+# endif
     mainPanel->setProperty("unix", true);
 #endif
     QGridLayout *_pMainGridLayout = new QGridLayout(mainPanel);
