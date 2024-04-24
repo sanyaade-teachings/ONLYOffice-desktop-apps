@@ -466,6 +466,13 @@ void CX11Decoration::dispatchMouseMove(QMouseEvent *e)
 
     if (m_nDirection >= 0 && e->buttons() == Qt::LeftButton)
     {
+#ifdef DONT_USE_GTK_MAINWINDOW
+        Window wnd = (Window)m_window->winId();
+#else
+        Window wnd = m_window->property("gtk_window_xid").value<unsigned long>();
+        if (wnd == None)
+            return;
+#endif
         Display * xdisplay_ = QX11Info::display();
         Window x_root_window_ = DefaultRootWindow(xdisplay_);
 
@@ -476,7 +483,7 @@ void CX11Decoration::dispatchMouseMove(QMouseEvent *e)
         memset(&event, 0, sizeof(event));
         event.xclient.type = ClientMessage;
         event.xclient.display = xdisplay_;
-        event.xclient.window = m_window->winId();
+        event.xclient.window = wnd;
 //        event.xclient.message_type = XInternAtom(xdisplay_, "_NET_WM_MOVERESIZE", false);
         event.xclient.message_type = GetAtom("_NET_WM_MOVERESIZE");
         event.xclient.format = 32;
@@ -518,13 +525,15 @@ void CX11Decoration::turnOn()
 void CX11Decoration::turnOff()
 {
 //    switchDecoration(false);
-
+#ifdef DONT_USE_GTK_MAINWINDOW
     m_window->setWindowFlags(Qt::FramelessWindowHint);
+#endif
     m_decoration = false;
 }
 
 void CX11Decoration::switchDecoration(bool on)
 {
+#ifdef DONT_USE_GTK_MAINWINDOW
     if (m_decoration != on) {
         // Signals that the reader of the _MOTIF_WM_HINTS property should pay
         // attention to the value of |decorations|.
@@ -544,6 +553,7 @@ void CX11Decoration::switchDecoration(bool on)
             XFlush(_xdisplay);
         }
     }
+#endif
 }
 
 bool CX11Decoration::isDecorated()
@@ -564,7 +574,12 @@ void CX11Decoration::onDpiChanged(double f)
 
 bool CX11Decoration::isNativeFocus()
 {
-    return XcbUtils::isNativeFocus(m_window->winId());
+#ifdef DONT_USE_GTK_MAINWINDOW
+    Window wnd = (Window)m_window->winId();
+#else
+    Window wnd = m_window->property("gtk_window_xid").value<unsigned long>();
+#endif
+    return (wnd == None) ? false : XcbUtils::isNativeFocus(wnd);
 }
 
 int CX11Decoration::customWindowBorderWith()
@@ -574,11 +589,18 @@ int CX11Decoration::customWindowBorderWith()
 
 void CX11Decoration::raiseWindow()
 {
+#ifdef DONT_USE_GTK_MAINWINDOW
+    Window wnd = (Window)m_window->winId();
+#else
+    Window wnd = m_window->property("gtk_window_xid").value<unsigned long>();
+    if (wnd == None)
+        return;
+#endif
     Display *disp = QX11Info::display();
     Atom atom_active_wnd = XInternAtom(disp, "_NET_ACTIVE_WINDOW", False);
     if (atom_active_wnd == None)
         return;
-    Window wnd = (Window)m_window->winId();
+
     Window root = DefaultRootWindow(disp);
     XEvent event;
     memset(&event, 0, sizeof(XEvent));
@@ -595,8 +617,15 @@ void CX11Decoration::raiseWindow()
 
 void CX11Decoration::sendButtonRelease()
 {
+#ifdef DONT_USE_GTK_MAINWINDOW
+    Window wnd = (Window)m_window->winId();
+#else
+    Window wnd = m_window->property("gtk_window_xid").value<unsigned long>();
+    if (wnd == None)
+        return;
+#endif
     Display * xdisplay_ = QX11Info::display();
-    Window x_root_window_ = (Window)m_window->effectiveWinId();
+    Window x_root_window_ = wnd;
 
     XEvent event;
     memset(&event, 0, sizeof(XEvent));
@@ -625,9 +654,16 @@ void CX11Decoration::setCursorPos(int x, int y)
 
 void CX11Decoration::setMinimized()
 {
+#ifdef DONT_USE_GTK_MAINWINDOW
+    Window wnd = (Window)m_window->winId();
+#else
+    Window wnd = m_window->property("gtk_window_xid").value<unsigned long>();
+    if (wnd == None)
+        return;
+#endif
     XClientMessageEvent ev;
     ev.type = ClientMessage;
-    ev.window = m_window->winId();
+    ev.window = wnd;
     ev.message_type = GetAtom("WM_CHANGE_STATE");
     ev.format = 32;
     ev.data.l[0] = IconicState;

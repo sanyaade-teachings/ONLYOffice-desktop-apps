@@ -6,6 +6,7 @@
 #include <QCloseEvent>
 #include <QShowEvent>
 
+class GtkMainWindowPrivate;
 
 class GtkMainWindow : public QObject
 {
@@ -55,7 +56,6 @@ protected:
     virtual void showEvent(QShowEvent *ev);
 
 private:
-    class GtkMainWindowPrivate;
     GtkMainWindowPrivate *pimpl;
 };
 

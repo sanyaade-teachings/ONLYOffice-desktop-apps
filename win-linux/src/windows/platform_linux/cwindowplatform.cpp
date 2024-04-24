@@ -51,13 +51,13 @@ CWindowPlatform::CWindowPlatform(const QRect &rect) :
 {
     if (AscAppManager::isRtlEnabled())
         setLayoutDirection(Qt::RightToLeft);
-#ifdef DONT_USE_GTK_MAINWINDOW
     if (isCustomWindowStyle()) {
+#ifdef DONT_USE_GTK_MAINWINDOW
         if (QX11Info::isCompositingManagerRunning())
             setAttribute(Qt::WA_TranslucentBackground);
+#endif
         CX11Decoration::turnOff();
     }
-#endif
     setIsCustomWindowStyle(!CX11Decoration::isDecorated());
     setFocusPolicy(Qt::StrongFocus);
     setProperty("stabilized", true);
@@ -110,11 +110,12 @@ void CWindowPlatform::adjustGeometry()
 }
 
 /** Protected **/
-
+#ifdef DONT_USE_GTK_MAINWINDOW
 void CWindowPlatform::onMinimizeEvent()
 {
     CX11Decoration::setMinimized();
 }
+#endif
 
 bool CWindowPlatform::event(QEvent * event)
 {
@@ -132,6 +133,25 @@ bool CWindowPlatform::event(QEvent * event)
             m_pMainPanel->setProperty("rtl", AscAppManager::isRtlEnabled());
             onLayoutDirectionChanged();
         }
+    } else
+    if (event->type() == QEvent::MouseMove) {
+        if (!property("blocked").toBool()) {
+            QMouseEvent *me = static_cast<QMouseEvent*>(event);
+            CX11Decoration::dispatchMouseMove(me);
+        }
+    } else
+    if (event->type() == QEvent::MouseButtonPress) {
+        QMouseEvent *me = static_cast<QMouseEvent*>(event);
+        CX11Decoration::dispatchMouseDown(me);
+    } else
+    if (event->type() == QEvent::MouseButtonRelease) {
+        QMouseEvent *me = static_cast<QMouseEvent*>(event);
+        CX11Decoration::dispatchMouseUp(me);
+    } else
+    if (event->type() == QEvent::MouseButtonDblClick) {
+        QMouseEvent *me = static_cast<QMouseEvent*>(event);
+        if (m_boxTitleBtns && m_boxTitleBtns->geometry().contains(me->pos()))
+            onMaximizeEvent();
     }
     return CWindowBase::event(event);
 }
@@ -190,28 +210,26 @@ void CWindowPlatform::paintEvent(QPaintEvent *event)
 
 /** Private **/
 
-#ifdef DONT_USE_GTK_MAINWINDOW
-void CWindowPlatform::mouseMoveEvent(QMouseEvent *e)
-{
-    if (!property("blocked").toBool())
-        CX11Decoration::dispatchMouseMove(e);
-}
-#endif
+// void CWindowPlatform::mouseMoveEvent(QMouseEvent *e)
+// {
+//     if (!property("blocked").toBool())
+//         CX11Decoration::dispatchMouseMove(e);
+// }
 
-void CWindowPlatform::mousePressEvent(QMouseEvent *e)
-{
-    CX11Decoration::dispatchMouseDown(e);
-}
+// void CWindowPlatform::mousePressEvent(QMouseEvent *e)
+// {
+//     CX11Decoration::dispatchMouseDown(e);
+// }
 
-void CWindowPlatform::mouseReleaseEvent(QMouseEvent *e)
-{
-    CX11Decoration::dispatchMouseUp(e);
-}
+// void CWindowPlatform::mouseReleaseEvent(QMouseEvent *e)
+// {
+//     CX11Decoration::dispatchMouseUp(e);
+// }
 
-void CWindowPlatform::mouseDoubleClickEvent(QMouseEvent *me)
-{
-    if (m_boxTitleBtns) {
-        if (m_boxTitleBtns->geometry().contains(me->pos()))
-            onMaximizeEvent();
-    }
-}
+// void CWindowPlatform::mouseDoubleClickEvent(QMouseEvent *me)
+// {
+//     if (m_boxTitleBtns) {
+//         if (m_boxTitleBtns->geometry().contains(me->pos()))
+//             onMaximizeEvent();
+//     }
+// }
