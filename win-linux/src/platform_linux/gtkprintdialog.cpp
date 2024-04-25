@@ -206,8 +206,11 @@ QDialog::DialogCode GtkPrintDialog::exec()
 {
     gtk_init(NULL, NULL);
     QDialog::DialogCode exit_code = QDialog::DialogCode::Rejected;
+#ifdef DONT_USE_GTK_MAINWINDOW
     Window parent_xid = (m_parent) ? (Window)m_parent->winId() : 0L;
-
+#else
+    Window parent_xid = (m_parent) ? m_parent->property("gtk_window_xid").value<unsigned long>() : 0L;
+#endif
     auto qt_printer_name = m_printer->printerName();
     auto qt_resolution = m_printer->resolution();
     auto qt_orient = m_printer->orientation();

@@ -877,21 +877,27 @@ namespace WindowHelper {
         if (parent) {
             parent->setProperty("blocked", true);
             Qt::WindowFlags flags = Qt::FramelessWindowHint;
+#ifdef DONT_USE_GTK_MAINWINDOW
             if (!QX11Info::isCompositingManagerRunning()) {
+#endif
                 flags |= (Qt::SubWindow | Qt::BypassWindowManagerHint);
                 QEventLoop loop;  // Fixed Cef rendering before reopening the dialog
                 QTimer::singleShot(60, &loop, SLOT(quit()));
                 loop.exec();
+#ifdef DONT_USE_GTK_MAINWINDOW
             } else
                 flags |= Qt::Dialog;
+#endif
             m_pChild = new QWidget(parent, flags);
             m_pChild->setAttribute(Qt::WA_TranslucentBackground);
+#ifdef DONT_USE_GTK_MAINWINDOW
             if (QX11Info::isCompositingManagerRunning()) {
                 m_pChild->setWindowModality(Qt::ApplicationModal);
                 m_pChild->move(parent->pos() - QPoint(10,10));
                 m_pChild->setFixedSize(parent->size() + QSize(20,20));
                 parent = m_pChild;
             } else
+#endif
                 m_pChild->setGeometry(parent->rect());
             m_pChild->show();
         }

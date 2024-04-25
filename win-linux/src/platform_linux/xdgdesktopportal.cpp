@@ -1,4 +1,5 @@
 #define _GNU_SOURCE 1
+#include <QVariant>
 #include "xdgdesktopportal.h"
 #include "components/cmessage.h"
 #include "platform_linux/xcbutils.h"
@@ -1138,7 +1139,11 @@ QStringList Xdg::openXdgPortal(QWidget *parent,
                                bool sel_multiple)
 {
     initDBus();
+#ifdef DONT_USE_GTK_MAINWINDOW
     Window parentWid = (parent) ? (Window)parent->winId() : 0L;
+#else
+    Window parentWid = (parent) ? parent->property("gtk_window_xid").value<unsigned long>() : 0L;
+#endif
     QStringList files;
 
     const int pos = file_name.lastIndexOf('/');

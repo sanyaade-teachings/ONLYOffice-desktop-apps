@@ -1132,7 +1132,7 @@ void CMainWindow::onDocumentPrint(void * opts)
         printInProcess = true; else
         return;
 
-    QWidget *parent = qobject_cast<QWidget*>(this);
+    QWidget *parent = qtUnderlay();
 #ifdef Q_OS_LINUX
     WindowHelper::CParentDisable disabler(parent);
 #endif
