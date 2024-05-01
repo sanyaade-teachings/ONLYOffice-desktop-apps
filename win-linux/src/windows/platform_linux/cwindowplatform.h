@@ -50,10 +50,10 @@ public:
 
 protected:
     virtual bool event(QEvent *event) override;
-    virtual bool nativeEvent(const QByteArray&, void*, long*) final;
     virtual void setScreenScalingFactor(double, bool resize = true) override;
 #ifdef DONT_USE_GTK_MAINWINDOW
     virtual void onMinimizeEvent() override;
+    virtual bool nativeEvent(const QByteArray&, void*, long*) final;
     virtual void paintEvent(QPaintEvent *event) override;
 #endif
     virtual void onLayoutDirectionChanged() = 0;

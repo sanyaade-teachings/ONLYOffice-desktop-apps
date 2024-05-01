@@ -75,6 +75,13 @@ static gboolean on_configure_event(GtkWidget *wgt, GdkEvent *ev, gpointer data)
     return FALSE;
 }
 
+static gboolean on_focus_in_event(gpointer data)
+{
+    if (QWidget *w = (QWidget*)data)
+        qApp->postEvent(w, new QEvent(Event_GtkFocusIn));
+    return FALSE;
+}
+
 static gboolean on_window_state_event(GtkWidget *wgt, GdkEventWindowState *ev, gpointer data)
 {
     if (GtkMainWindowPrivate *pimpl = (GtkMainWindowPrivate*)data) {
@@ -109,8 +116,9 @@ GtkMainWindow::GtkMainWindow(QWidget *parent) :
     QObject(parent),
     pimpl(new GtkMainWindowPrivate)
 {
-    gtk_init(NULL, NULL);
+//    gtk_init(NULL, NULL);
     pimpl->wnd = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+    gtk_window_set_type_hint(GTK_WINDOW(pimpl->wnd), GdkWindowTypeHint::GDK_WINDOW_TYPE_HINT_NORMAL);
 //    gtk_window_set_title(GTK_WINDOW(pimpl->wnd), "GtkMainWindow");
     pimpl->event = std::bind(&GtkMainWindow::event, this, std::placeholders::_1);
     g_signal_connect(G_OBJECT (pimpl->wnd), "window-state-event", G_CALLBACK(on_window_state_event), pimpl);
@@ -139,6 +147,7 @@ GtkMainWindow::GtkMainWindow(QWidget *parent) :
                               std::bind(&GtkMainWindow::showEvent, this, std::placeholders::_1));
     pimpl->cw->setObjectName("underlay");
     g_signal_connect(G_OBJECT(pimpl->wnd), "configure-event", G_CALLBACK(on_configure_event), pimpl->cw);
+    g_signal_connect_swapped(G_OBJECT(pimpl->wnd), "focus-in-event", G_CALLBACK(on_focus_in_event), pimpl->cw);
     QVBoxLayout *lut = new QVBoxLayout;
     lut->setContentsMargins(0,0,0,0);
     pimpl->cw->setLayout(lut);

@@ -30,10 +30,10 @@
  *
 */
 
-#include "cascapplicationmanagerwrapper.h"
 #ifdef _WIN32
 # include "platform_win/singleapplication.h"
 #else
+# include <gtk/gtk.h>
 # include "platform_linux/singleapplication.h"
 # include "components/cmessage.h"
 # include <unistd.h>
@@ -41,6 +41,7 @@
 #  include <glib.h>
 # endif
 #endif
+#include "cascapplicationmanagerwrapper.h"
 #include "defines.h"
 #include "clangater.h"
 #include "clogger.h"
@@ -156,6 +157,9 @@ int main( int argc, char *argv[] )
     app.setStyle(QStyleFactory::create("Fusion"));
 
     /* the order is important */
+#ifdef __linux__
+    gtk_init(&argc, &argv);
+#endif
     CApplicationCEF::Prepare(argc, argv);
     CApplicationCEF* application_cef = new CApplicationCEF();
     setup_paths(&AscAppManager::getInstance());

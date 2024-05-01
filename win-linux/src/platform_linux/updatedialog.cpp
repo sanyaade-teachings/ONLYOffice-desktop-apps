@@ -74,7 +74,7 @@ int WinDlg::showDialog(QWidget *parent,
 #else
     Window parent_xid = (parent) ? parent->property("gtk_window_xid").value<unsigned long>() : 0L;
 #endif
-    gtk_init(NULL, NULL);
+//    gtk_init(NULL, NULL);
     GtkDialogFlags flags;
     flags = (GtkDialogFlags)(GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT);
 

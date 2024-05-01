@@ -153,9 +153,27 @@ bool CWindowPlatform::event(QEvent * event)
         if (m_boxTitleBtns && m_boxTitleBtns->geometry().contains(me->pos()))
             onMaximizeEvent();
     }
+#ifndef DONT_USE_GTK_MAINWINDOW
+    else if (event->type() == Event_GtkFocusIn) {
+        if (isNativeFocus()) {
+            focus();
+            m_propertyTimer->stop();
+            if (property("stabilized").toBool())
+                setProperty("stabilized", false);
+            m_propertyTimer->start();
+        }
+    }
+#endif
     return CWindowBase::event(event);
 }
 
+void CWindowPlatform::setScreenScalingFactor(double factor, bool resize)
+{
+    CX11Decoration::onDpiChanged(factor);
+    CWindowBase::setScreenScalingFactor(factor, resize);
+}
+
+#ifdef DONT_USE_GTK_MAINWINDOW
 bool CWindowPlatform::nativeEvent(const QByteArray &ev_type, void *msg, long *res)
 {
     if (ev_type == "xcb_generic_event_t") {
@@ -177,13 +195,6 @@ bool CWindowPlatform::nativeEvent(const QByteArray &ev_type, void *msg, long *re
     return CWindowBase::nativeEvent(ev_type, msg, res);
 }
 
-void CWindowPlatform::setScreenScalingFactor(double factor, bool resize)
-{
-    CX11Decoration::onDpiChanged(factor);
-    CWindowBase::setScreenScalingFactor(factor, resize);
-}
-
-#ifdef DONT_USE_GTK_MAINWINDOW
 void CWindowPlatform::paintEvent(QPaintEvent *event)
 {
     CWindowBase::paintEvent(event);

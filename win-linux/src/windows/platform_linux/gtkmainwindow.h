@@ -6,6 +6,8 @@
 #include <QCloseEvent>
 #include <QShowEvent>
 
+#define Event_GtkFocusIn static_cast<QEvent::Type>(QEvent::User + 2)
+
 class GtkMainWindowPrivate;
 
 class GtkMainWindow : public QObject

@@ -204,7 +204,7 @@ void GtkPrintDialog::setPrintRange(PrintRange print_range)
 
 QDialog::DialogCode GtkPrintDialog::exec()
 {
-    gtk_init(NULL, NULL);
+//    gtk_init(NULL, NULL);
     QDialog::DialogCode exit_code = QDialog::DialogCode::Rejected;
 #ifdef DONT_USE_GTK_MAINWINDOW
     Window parent_xid = (m_parent) ? (Window)m_parent->winId() : 0L;
