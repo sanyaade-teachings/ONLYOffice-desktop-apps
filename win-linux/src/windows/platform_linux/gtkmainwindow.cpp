@@ -160,12 +160,24 @@ GtkMainWindow::~GtkMainWindow()
     delete pimpl;
 }
 
+void GtkMainWindow::move(const QPoint &pos)
+{
+    gtk_window_move(GTK_WINDOW(pimpl->wnd), pos.x(), pos.y());
+//     gtk_widget_queue_draw(pimpl->wnd);
+//     gtk_widget_queue_allocate(pimpl->wnd);
+}
+
 void GtkMainWindow::setGeometry(const QRect &rc)
 {
     gint f = gtk_widget_get_scale_factor(pimpl->wnd);
-    gtk_window_move(GTK_WINDOW(pimpl->wnd), rc.x()/f, rc.y()/f);
-    gtk_window_set_default_size(GTK_WINDOW(pimpl->wnd), rc.width()/f, rc.height()/f);
-//    gtk_window_resize(GTK_WINDOW(pimpl->wnd), rc.width(), rc.height());
+//     gtk_window_set_default_size(GTK_WINDOW(pimpl->wnd), rc.width()/f, rc.height()/f);
+//     gtk_widget_queue_resize(pimpl->wnd);
+    GdkWindow *gdk_wnd = gtk_widget_get_window(pimpl->wnd);
+    gdk_window_move_resize(gdk_wnd, rc.x(), rc.y(), rc.width()/f, rc.height()/f);
+//     gtk_window_resize(GTK_WINDOW(pimpl->wnd), rc.width()/f, rc.height()/f);
+//     gtk_window_move(GTK_WINDOW(pimpl->wnd), rc.x()/f, rc.y()/f);
+//     gtk_widget_queue_draw(pimpl->wnd);
+//     gtk_widget_queue_allocate(pimpl->wnd);
 }
 
 void GtkMainWindow::setWindowIcon(const QIcon &icon)
@@ -237,10 +249,13 @@ void GtkMainWindow::setFocusPolicy(Qt::FocusPolicy fp)
 void GtkMainWindow::show()
 {
     gtk_widget_show_all(pimpl->wnd);
-    pimpl->cw->show();
     GdkWindow *gdk_wnd = gtk_widget_get_window(pimpl->wnd);
     Window xid = GDK_WINDOW_XID(gdk_wnd);
     pimpl->cw->setProperty("gtk_window_xid", QVariant::fromValue(xid));
+    pimpl->cw->show();
+    while (gtk_events_pending())
+        gtk_main_iteration_do(FALSE);
+
 }
 
 void GtkMainWindow::showMinimized()

@@ -367,8 +367,8 @@ void CEditorWindow::captureMouse()
     }
 #else
     QMouseEvent _event(QEvent::MouseButtonRelease, QCursor::pos(), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
-    QApplication::sendEvent(AscAppManager::mainWindow(), &_event);
-    setGeometry(QRect(QCursor::pos() - QPoint(CAPTURED_WINDOW_OFFSET_X, CAPTURED_WINDOW_OFFSET_Y), size()));
+    QApplication::sendEvent(AscAppManager::mainWindow()->qtUnderlay(), &_event);
+    move(QCursor::pos() - QPoint(CAPTURED_WINDOW_OFFSET_X, CAPTURED_WINDOW_OFFSET_Y));
     Q_ASSERT(m_boxTitleBtns != nullptr);
     QPoint pt_in_title = (m_boxTitleBtns->geometry().topLeft() + QPoint(CAPTURED_WINDOW_OFFSET_X, CAPTURED_WINDOW_OFFSET_Y));
     _event = {QEvent::MouseButtonPress, pt_in_title, Qt::LeftButton, Qt::LeftButton, Qt::NoModifier};
@@ -419,6 +419,44 @@ bool CEditorWindow::event(QEvent * event)
 {
     if (event->type() == QEvent::Resize) {
         onSizeEvent(0);
+#ifndef DONT_USE_GTK_MAINWINDOW
+        if (isCustomWindowStyle()) {
+            int d = isMaximized() ? 0 : qRound(2 * 2.6 * m_dpiRatio);
+            QPainterPath path;
+            path.moveTo(d_ptr->panel()->width(), d/2);
+            path.arcTo(d_ptr->panel()->width() - d, 0, d, d, 0, 90);
+            path.lineTo(d/2, 0);
+            path.arcTo(0, 0, d, d, 90, 90);
+            path.lineTo(0, d_ptr->panel()->height());
+            path.lineTo(d_ptr->panel()->width(), d_ptr->panel()->height());
+            path.lineTo(d_ptr->panel()->width(), d/2);
+            path.closeSubpath();
+            //m_pMainPanel->setMask(path.toFillPolygon().toPolygon());
+        }
+#endif
+    } else
+    if (event->type() == QEvent::Paint) {
+        //QWidget::paintEvent(event);
+/*#ifndef DONT_USE_GTK_MAINWINDOW
+        if (isCustomWindowStyle()) {
+            int d = isMaximized() ? 0 : qRound(2 * 2.6 * m_dpiRatio);
+            QPainterPath path;
+            path.moveTo(d_ptr->panel()->width(), d/2);
+            path.arcTo(d_ptr->panel()->width() - d, 0, d, d, 0, 90);
+            path.lineTo(d/2, 0);
+            path.arcTo(0, 0, d, d, 90, 90);
+            path.lineTo(0, d_ptr->panel()->height());
+            path.lineTo(d_ptr->panel()->width(), d_ptr->panel()->height());
+            path.lineTo(d_ptr->panel()->width(), d/2);
+            path.closeSubpath();
+            m_pMainPanel->setMask(QRegion()) (path.toFillPolygon(QMatrix()).toPolygon());
+
+            QPainter painter(qtUnderlay());
+            painter.setRenderHint(QPainter::Antialiasing);
+            painter.fillPath(path, QBrush(Qt::black));
+            painter.end();
+        }
+#endif*/
     } else
 //    if (event->type() == QEvent::User) {
 //        onExitSizeMove();

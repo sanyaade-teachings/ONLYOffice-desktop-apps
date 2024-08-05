@@ -17,6 +17,7 @@ public:
     GtkMainWindow(QWidget *parent);
     ~GtkMainWindow();
 
+    void move(const QPoint &pos);
     void setGeometry(const QRect &rc);
     void setWindowIcon(const QIcon &icon);
     void setWindowTitle(const QString &title);

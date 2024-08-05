@@ -621,13 +621,13 @@ void CX11Decoration::raiseWindow()
 
 void CX11Decoration::sendButtonRelease()
 {
-#ifdef DONT_USE_GTK_MAINWINDOW
+//#ifdef DONT_USE_GTK_MAINWINDOW
     Window wnd = (Window)m_window->winId();
-#else
-    Window wnd = m_window->property("gtk_window_xid").value<unsigned long>();
-    if (wnd == None)
-        return;
-#endif
+// #else
+//     Window wnd = m_window->property("gtk_window_xid").value<unsigned long>();
+//     if (wnd == None)
+//         return;
+// #endif
     Display * xdisplay_ = QX11Info::display();
     Window x_root_window_ = wnd;
 
