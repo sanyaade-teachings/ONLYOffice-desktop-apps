@@ -41,7 +41,7 @@
 "Document %ld.docx" = "Dokumen %ld.docx";
 
 /* No comment provided by engineer. */
-"Document %ld.docxf" = "Dokumen %ld.docxf";
+"Document %ld.pdf" = "Dokumen %ld.pdf";
 
 /* No comment provided by engineer. */
 "Document template" = "Dokumen templat Word Open XML (*.dotx)";
@@ -80,13 +80,16 @@
 "Mobipocket e-book" = "E-book mobipocket (*.mobi)";
 
 /* No comment provided by engineer. */
-"new-document" = "Dokumen Baru";
+"new-document" = "Dokumen baru";
 
 /* No comment provided by engineer. */
-"new-presentation" = "Presentasi Baru";
+"new-pdfform" = "Formulir PDF baru";
 
 /* No comment provided by engineer. */
-"new-spreadsheet" = "Lembar Bentang Baru";
+"new-presentation" = "Presentasi baru";
+
+/* No comment provided by engineer. */
+"new-spreadsheet" = "Lembar bentang baru";
 
 /* No comment provided by engineer. */
 "No" = "Tidak";
@@ -183,9 +186,6 @@
 
 /* No comment provided by engineer. */
 "Untitled" = "Tanpa Judul";
-
-/* No comment provided by engineer. */
-"Version %@ (%@)" = "Versi %1$@ (%2$@)";
 
 /* No comment provided by engineer. */
 "Web Page" = "Halaman Web";

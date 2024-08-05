@@ -61,7 +61,7 @@ int GtkMsg::showMessage(QWidget *parent,
                         MsgBtns msgBtns,
                         bool   *checkBoxState,
                         const QString &chekBoxText)
-{           
+{
     QString plainText = QTextDocumentFragment::fromHtml(msg).toPlainText();
     const int delim = plainText.indexOf('\n');
     const QString primaryText = (delim != -1) ? plainText.mid(0, delim) : plainText;
@@ -80,7 +80,6 @@ int GtkMsg::showMessage(QWidget *parent,
     default:                   img_name = "dialog-information"; break;
     }
 
-//    gtk_init(NULL, NULL);
     GtkWidget *image = NULL;
     image = gtk_image_new();
     gtk_image_set_from_icon_name(GTK_IMAGE(image), img_name, GTK_ICON_SIZE_DIALOG);

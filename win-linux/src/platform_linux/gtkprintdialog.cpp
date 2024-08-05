@@ -204,7 +204,6 @@ void GtkPrintDialog::setPrintRange(PrintRange print_range)
 
 QDialog::DialogCode GtkPrintDialog::exec()
 {
-//    gtk_init(NULL, NULL);
     QDialog::DialogCode exit_code = QDialog::DialogCode::Rejected;
 #ifdef DONT_USE_GTK_MAINWINDOW
     Window parent_xid = (m_parent) ? (Window)m_parent->winId() : 0L;
@@ -303,7 +302,7 @@ QDialog::DialogCode GtkPrintDialog::exec()
             GTK_PAGE_SET_ODD
         };
         gtk_print_settings_set_page_set(settings, page_set_arr[0]);
-        gtk_print_settings_set_collate(settings, FALSE);
+        gtk_print_settings_set_collate(settings, m_printer->collateCopies() ? TRUE : FALSE);
 
         // Qt-Duplex:
         // DuplexNone = 0
@@ -376,7 +375,7 @@ QDialog::DialogCode GtkPrintDialog::exec()
     if (AscAppManager::isRtlEnabled())
         gtk_widget_set_default_direction(GTK_TEXT_DIR_RTL);
     GtkWidget *dialog;
-    dialog = gtk_print_unix_dialog_new(m_title.toUtf8().data(), NULL);   
+    dialog = gtk_print_unix_dialog_new(m_title.toUtf8().data(), NULL);
     gtk_window_set_type_hint(GTK_WINDOW(dialog), GDK_WINDOW_TYPE_HINT_DIALOG);
     gtk_window_set_skip_taskbar_hint(GTK_WINDOW(dialog), TRUE);
 
@@ -539,7 +538,7 @@ QDialog::DialogCode GtkPrintDialog::exec()
     }
     default:
         break;
-    } 
+    }
     //gtk_window_close(GTK_WINDOW(dialog));
     gtk_widget_destroy(dialog);
     //gtk_main();

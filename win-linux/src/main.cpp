@@ -55,10 +55,8 @@
 int main( int argc, char *argv[] )
 {
 #ifdef _WIN32
-    if (argc > 1 && strcmp(argv[1], "--add-to-recent") == 0)
-        return 0;
     Core_SetProcessDpiAwareness();
-    Utils::setAppUserModelId(APP_USER_MODEL_ID);
+    Utils::setAppUserModelId();
     WCHAR * cm_line = GetCommandLine();
     InputArgs::init(cm_line);
 #else
@@ -132,8 +130,16 @@ int main( int argc, char *argv[] )
         reg_user.remove("maximized");
         reg_user.remove("position");
     }
+    if ( InputArgs::contains(L"--lock-portals") ) {
+        GET_REGISTRY_USER(reg_user)
+        reg_user.setValue("lockPortals", true);
+    } else
+    if ( InputArgs::contains(L"--unlock-portals") ) {
+        GET_REGISTRY_USER(reg_user)
+        reg_user.remove("lockPortals");
+    }
 
-    SingleApplication app(argc, argv, QString(APP_MUTEX_NAME));
+    SingleApplication app(argc, argv);
 
     if (!app.isPrimary() && !InputArgs::contains(L"--single-window-app")) {
         QString _out_args;

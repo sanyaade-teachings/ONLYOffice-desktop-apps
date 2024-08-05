@@ -41,7 +41,7 @@
 "Document %ld.docx" = "Document %ld.docx";
 
 /* No comment provided by engineer. */
-"Document %ld.docxf" = "Document %ld.docxf";
+"Document %ld.pdf" = "Document %ld.pdf";
 
 /* No comment provided by engineer. */
 "Document template" = "Word Open XML Document Sjabloon (*.dotx)";
@@ -77,13 +77,16 @@
 "Mobipocket e-book" = "Mobipocket e-book (*.mobi)";
 
 /* No comment provided by engineer. */
-"new-document" = "Nieuw Document";
+"new-document" = "Nieuw document";
 
 /* No comment provided by engineer. */
-"new-presentation" = "Nieuwe Presentatie";
+"new-pdfform" = "Nieuw PDF-formulier";
 
 /* No comment provided by engineer. */
-"new-spreadsheet" = "Nieuwe Spreadsheet";
+"new-presentation" = "Nieuwe presentatie";
+
+/* No comment provided by engineer. */
+"new-spreadsheet" = "Nieuwe spreadsheet";
 
 /* No comment provided by engineer. */
 "No" = "Nee";
@@ -180,9 +183,6 @@
 
 /* No comment provided by engineer. */
 "Untitled" = "Zonder titel";
-
-/* No comment provided by engineer. */
-"Version %@ (%@)" = "Versie %1$@ (%2$@)";
 
 /* No comment provided by engineer. */
 "Web Page" = "Webpagina";

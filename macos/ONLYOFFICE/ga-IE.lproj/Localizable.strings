@@ -41,7 +41,7 @@
 "Document %ld.docx" = "Doiciméad %ld.docx";
 
 /* No comment provided by engineer. */
-"Document %ld.docxf" = "Doiciméad %ld.docxf";
+"Document %ld.pdf" = "Doiciméad %ld.pdf";
 
 /* No comment provided by engineer. */
 "Document template" = "Teimpléad doiciméad Word Open XML (*.dotx)";
@@ -74,13 +74,16 @@
 "Mobipocket e-book" = "Mobipocket e-book (*.mobi)";
 
 /* No comment provided by engineer. */
-"new-document" = "Doiciméad Nua";
+"new-document" = "Doiciméad nua";
 
 /* No comment provided by engineer. */
-"new-presentation" = "Cur i Láthair Nua";
+"new-pdfform" = "Foirm PDF nua";
 
 /* No comment provided by engineer. */
-"new-spreadsheet" = "Scarbhileog Nua";
+"new-presentation" = "Cur i Láthair nua";
+
+/* No comment provided by engineer. */
+"new-spreadsheet" = "Scarbhileog nua";
 
 /* No comment provided by engineer. */
 "No" = "Níl";
@@ -177,9 +180,6 @@
 
 /* No comment provided by engineer. */
 "Untitled" = "Gan ainm";
-
-/* No comment provided by engineer. */
-"Version %@ (%@)" = "Leagan %1$@ (%2$@)";
 
 /* No comment provided by engineer. */
 "Web Page" = "Leathanach Gréasáin";

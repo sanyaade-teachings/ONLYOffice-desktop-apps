@@ -333,6 +333,7 @@ public:
     void changeScrollerState();
     void reorderIndexes();
     void recalcWidth();
+    void setActive(int index);
     bool indexIsValid(int index);
 
     CTabBar*     owner = nullptr;
@@ -345,6 +346,7 @@ public:
     Qt::TextElideMode elideMode;
     Tab* movedTab = nullptr;
     bool lock = false;
+    bool isActive = false;
     int animationInProgress = 0;
     int movedTabPosX = 0;
     int movedTabPressPosX = 0;
@@ -515,18 +517,12 @@ void CTabBar::CTabBarPrivate::onCurrentChanged(int index)
         PROCESSEVENTS();
 
     recalcWidth();
-
-    if ( !(index < 0) )
-        scrollTo(index);
+    scrollTo(index);
 
     currentIndex = index;
 
-    for (int i = 0; i < tabList.size(); i++) {
-        tabList[i]->setProperty("selected", i == index);
-
-        tabList[i]->setActive(i == index);
-        tabList[i]->polish();
-    }
+    if (isActive)
+        setActive(index);
 
     emit owner->currentChanged(index);
 }
@@ -600,6 +596,15 @@ void CTabBar::CTabBarPrivate::recalcWidth()
     PROCESSEVENTS();
 }
 
+void CTabBar::CTabBarPrivate::setActive(int index)
+{
+    for (int i = 0; i < tabList.size(); i++) {
+        tabList[i]->setProperty("selected", i == index);
+        tabList[i]->setActive(i == index);
+        tabList[i]->polish();
+    }
+}
+
 bool CTabBar::CTabBarPrivate::indexIsValid(int index)
 {
     return index > -1 && index < tabList.size();
@@ -666,6 +671,8 @@ int CTabBar::addTab(const QString &text)
     while (d->animationInProgress)
         PROCESSEVENTS();
 
+    d->movedTab = nullptr;
+    d->movedTabIndex = -1;
     const int lastIndex = d->tabList.size() - 1;
     const int posX = (lastIndex == -1) ? 0 : d->nextTabPosByPrev(lastIndex);
     Tab *tab = d->createTab(posX, text);
@@ -711,6 +718,8 @@ int CTabBar::insertTab(int index, const QString &text)
     if (!d->indexIsValid(index))
         return addTab(text);
 
+    d->movedTab = nullptr;
+    d->movedTabIndex = -1;
     int posX = d->_tabRect(index).left();
     d->slide(index, d->tabList.size() - 1, d->cellWidth(), ANIMATION_DEFAULT_MS);
     while (d->animationInProgress)
@@ -738,6 +747,8 @@ void CTabBar::swapTabs(int from, int to)
         PROCESSEVENTS();
     if (from == to || !d->indexIsValid(from) || !d->indexIsValid(to))
         return;
+    d->movedTab = nullptr;
+    d->movedTabIndex = -1;
     int posX = d->_tabRect(from).x();
     d->tabList[from]->move(d->_tabRect(to).x(), 0);
     d->tabList[to]->move(posX, 0);
@@ -761,6 +772,8 @@ void CTabBar::removeTab(int index)
     if (!d->indexIsValid(index))
         return;
 
+    d->movedTab = nullptr;
+    d->movedTabIndex = -1;
     d->tabList[index]->hide();
     if (d->_tabRect(0).x() <= d->tabArea->x() - d->cellWidth()) {
         const int prevIndex = index - 1;
@@ -801,12 +814,8 @@ void CTabBar::removeTab(int index)
         if (index > 0) {
             d->recalcWidth();
         } else {
-            if ( property("active").toBool() ) {
-                const int initialMaxIndex = d->tabList.size(); // max index before deletion
-                d->onCurrentChanged(index < initialMaxIndex ? index : -1);
-            } else {
-                d->recalcWidth();
-            }
+            const int initialMaxIndex = d->tabList.size(); // max index before deletion
+            d->onCurrentChanged(index < initialMaxIndex ? index : -1);
         }
     }
 }
@@ -903,7 +912,7 @@ void CTabBar::setCurrentIndex(int index)
     while (d->animationInProgress)
         PROCESSEVENTS();
 
-    if (/*!d->indexIsValid(index) ||*/ index == d->currentIndex)
+    if (!d->indexIsValid(index) || index == d->currentIndex)
         return;
 
     d->onCurrentChanged(index);
@@ -966,6 +975,14 @@ void CTabBar::polish()
     d->scrollFrame->style()->polish(d->scrollFrame);
     d->leftButton->style()->polish(d->leftButton);
     d->rightButton->style()->polish(d->rightButton);
+}
+
+void CTabBar::activate(bool isActive)
+{
+    if (d->isActive != isActive) {
+        d->isActive = isActive;
+        d->setActive(isActive ? d->currentIndex : -1);
+    }
 }
 
 void CTabBar::refreshTheme()
@@ -1082,7 +1099,7 @@ bool CTabBar::eventFilter(QObject *watched, QEvent *event)
     if (watched == d->tabArea) {
         switch (event->type()) {
         case QEvent::MouseMove: {
-            QMouseEvent* me = dynamic_cast<QMouseEvent*>(event);
+            QMouseEvent* me = static_cast<QMouseEvent*>(event);
             if (me->buttons().testFlag(Qt::LeftButton)) {
                 if (d->movedTab && !d->lock) {
                     int currPosX = d->movedTab->x();
@@ -1133,7 +1150,7 @@ bool CTabBar::eventFilter(QObject *watched, QEvent *event)
             break;
         }
         case QEvent::MouseButtonPress: {
-            QMouseEvent* me = dynamic_cast<QMouseEvent*>(event);
+            QMouseEvent* me = static_cast<QMouseEvent*>(event);
             if (me->button() == Qt::LeftButton) {
                 if (!d->animationInProgress) {
                     for (int i = 0; i < d->tabList.size(); i++) {
@@ -1168,7 +1185,7 @@ bool CTabBar::eventFilter(QObject *watched, QEvent *event)
             break;
         }
         case QEvent::MouseButtonRelease: {
-            QMouseEvent* mouse_event = dynamic_cast<QMouseEvent*>(event);
+            QMouseEvent* mouse_event = static_cast<QMouseEvent*>(event);
             if (mouse_event->button() == Qt::LeftButton) {
                 while (d->animationInProgress)
                     PROCESSEVENTS();
@@ -1218,7 +1235,8 @@ bool CTabBar::eventFilter(QObject *watched, QEvent *event)
             setCursor(QCursor(Qt::ArrowCursor));
             break;
         case QEvent::Leave:
-            QApplication::postEvent(d->tabArea, new QMouseEvent(QEvent::MouseButtonRelease, QCursor::pos(), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier));
+            if (d->movedTab && d->tabList.size() > 0)
+                QApplication::postEvent(d->tabArea, new QMouseEvent(QEvent::MouseButtonRelease, QCursor::pos(), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier));
             break;
         case QEvent::LayoutDirectionChange: {
             SKIP_EVENTS_QUEUE([=]() {

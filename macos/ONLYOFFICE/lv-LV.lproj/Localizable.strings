@@ -41,7 +41,7 @@
 "Document %ld.docx" = "Dokuments %ld.docx";
 
 /* No comment provided by engineer. */
-"Document %ld.docxf" = "Dokuments %ld.docxf";
+"Document %ld.pdf" = "Dokuments %ld.pdf";
 
 /* No comment provided by engineer. */
 "Document template" = "Word Open XML Dokumenta veidne (*.dotx)";
@@ -74,13 +74,16 @@
 "Mobipocket e-book" = "Mobipocket e-grāmata (*.mobi)";
 
 /* No comment provided by engineer. */
-"new-document" = "Jauns Dokuments";
+"new-document" = "Jauns dokuments";
 
 /* No comment provided by engineer. */
-"new-presentation" = "Jauna Prezentācija";
+"new-pdfform" = "Jauna PDF veidlapa";
 
 /* No comment provided by engineer. */
-"new-spreadsheet" = "Jauna Izklājlapa";
+"new-presentation" = "Jauna prezentācija";
+
+/* No comment provided by engineer. */
+"new-spreadsheet" = "Jauna izklājlapa";
 
 /* No comment provided by engineer. */
 "No" = "Nē";
@@ -177,9 +180,6 @@
 
 /* No comment provided by engineer. */
 "Untitled" = "Bez nosaukuma";
-
-/* No comment provided by engineer. */
-"Version %@ (%@)" = "Versija %1$@ (%2$@)";
 
 /* No comment provided by engineer. */
 "Web Page" = "Web Lapa";

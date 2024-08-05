@@ -42,7 +42,7 @@ class SingleApplication : public QApplication
 {
     Q_OBJECT
 public:
-    explicit SingleApplication(int &argc, char *argv[], const QString &instanceName);
+    explicit SingleApplication(int &argc, char *argv[]);
     ~SingleApplication();
 
     bool isPrimary() const;
@@ -58,6 +58,9 @@ private:
     HANDLE      m_hMutex = nullptr;
     HWND        m_hWnd = nullptr;
     bool        m_isPrimary;
+
+private slots:
+    void invokeSignal(const QString&);
 };
 
 #endif // SINGLEAPPLICATION_H

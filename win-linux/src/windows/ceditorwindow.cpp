@@ -49,7 +49,7 @@ CEditorWindow::CEditorWindow(const QRect& rect, CTabPanel* panel)
 CEditorWindow::CEditorWindow(const QRect &rect, const COpenOptions &opts)
     : CWindowPlatform(rect)
 {
-    if (CTabPanel *panel = CEditorTools::createEditorPanel(opts, CWindowBase::expectedContentSize(rect, true), qtUnderlay())) {
+    if (CTabPanel *panel = CEditorTools::createEditorPanel(opts, qtUnderlay())) {
         d_ptr = std::unique_ptr<CEditorWindowPrivate>(new CEditorWindowPrivate(this));
         CAscTabData * panel_data = panel->data();
         QRegularExpression re("^ascdesktop:\\/\\/(?:compare|merge|template)");
@@ -301,7 +301,7 @@ void CEditorWindow::recalculatePlaces()
         d_ptr->panel()->view()->SetCaptionMaskSize(int(TITLE_HEIGHT * m_dpiRatio));
     }
 
-    if ( d_ptr->canExtendTitle() && !d_ptr->panel()->data()->hasError() ) {
+    if ( /*d_ptr->canExtendTitle() &&*/ !d_ptr->panel()->data()->hasError() ) {
         m_pMainView->lower();
     }
 }
@@ -474,7 +474,7 @@ void CEditorWindow::setScreenScalingFactor(double factor, bool resize)
     if (isCustomWindowStyle()) {
         m_boxTitleBtns->setFixedHeight(int(TOOLBTN_HEIGHT * factor));
         if (m_pSpacer) {
-            m_pSpacer->changeSize(int(TOP_PANEL_OFFSET*m_dpiRatio), 5,
+            m_pSpacer->changeSize(int(TOOLBTN_WIDTH*d_ptr->leftButtonsCount()*m_dpiRatio), 5,
                                   QSizePolicy::Fixed, QSizePolicy::Fixed);
         }
     }
