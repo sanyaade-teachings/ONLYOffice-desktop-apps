@@ -124,7 +124,7 @@ static void GetFrameMetricsForDpi(FRAME &frame, double dpi, bool maximized = fal
     frame.top -= top_ofs[row][column];
 }
 
-static QColor calcBorderColor(bool isActive = true, const QColor &bkgColor = QColor())
+static QColor GetBorderColor(bool isActive, const QColor &bkgColor)
 {
     int lum = int(0.299 * bkgColor.red() + 0.587 * bkgColor.green() + 0.114 * bkgColor.blue());
     if (isActive) {
@@ -132,13 +132,15 @@ static QColor calcBorderColor(bool isActive = true, const QColor &bkgColor = QCo
         if (reg.value("ColorPrevalence", 0).toInt() != 0) {
             DWORD dwcolor = 0;
             BOOL opaque = TRUE;
-            static HRESULT(WINAPI *DwmGetColorizationColor)(DWORD*, BOOL*) = NULL;
-            if (!DwmGetColorizationColor) {
+            static HRESULT(WINAPI *_DwmGetColorizationColor)(DWORD*, BOOL*) = NULL;
+            if (!_DwmGetColorizationColor) {
                 if (HMODULE module = GetModuleHandleA("dwmapi"))
-                    *(FARPROC*)&DwmGetColorizationColor = GetProcAddress(module, "DwmGetColorizationColor");
+                    *(FARPROC*)&_DwmGetColorizationColor = GetProcAddress(module, "DwmGetColorizationColor");
             }
-            if (DwmGetColorizationColor && SUCCEEDED(DwmGetColorizationColor(&dwcolor, &opaque))) {
+            if (_DwmGetColorizationColor && SUCCEEDED(_DwmGetColorizationColor(&dwcolor, &opaque))) {
                 float a = (float)((dwcolor >> 24) & 0xff)/255;
+                if (a < 0.8)
+                    a = 0.8;
                 int r = (int)(((dwcolor >> 16) & 0xff) * a + 255 * (1 - a));
                 int g = (int)(((dwcolor >> 8) & 0xff) * a + 255 * (1 - a));
                 int b = (int)((dwcolor & 0xff) * a + 255 * (1 - a));
@@ -146,7 +148,7 @@ static QColor calcBorderColor(bool isActive = true, const QColor &bkgColor = QCo
             }
         } else {
             QSettings reg_lt("HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize", QSettings::NativeFormat);
-            if (reg_lt.value("SystemUsesLightTheme", 0).toInt() != 0) {
+            if (reg_lt.value("SystemUsesLightTheme", 1).toInt() != 0) {
                 QString userSid = Utils::GetCurrentUserSID();
                 if (!userSid.isEmpty()) {
                     QSettings reg_ac("HKEY_USERS\\" + userSid + "\\Control Panel\\Desktop", QSettings::NativeFormat);
@@ -270,7 +272,7 @@ void CWindowPlatform::setWindowColors(const QColor& background, const QColor& bo
         HDC hdc = GetDC(NULL);
         brdWidth = GetSystemMetrics(SM_CXBORDER) * GetDeviceCaps(hdc, LOGPIXELSX)/96;
         ReleaseDC(NULL, hdc);
-        QColor brdColor = calcBorderColor(isActive, background);
+        QColor brdColor = GetBorderColor(isActive, background);
         css = QString("QMainWindow{border-top: %1px solid %2; background-color: %3;}").arg(QString::number(brdWidth), brdColor.name(), background.name());
     } else {
         css = QString("QMainWindow{background-color: %1;}").arg(background.name());
