@@ -37,7 +37,8 @@
 #include <Windows.h>
 #include <strsafe.h>
 
-#define SERVICE_NAME TEXT(VER_PRODUCTNAME_STR)
+#define SERVICE_NAME TEXT(VER_SERVICENAME_STR)
+#define SERVICE_DISPLAY_NAME TEXT(VER_PRODUCTNAME_STR)
 
 namespace SvcControl
 {

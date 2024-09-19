@@ -65,6 +65,7 @@
 #define VER_LANG_ID                 0x0409
 #define VER_CHARSET_ID              1252
 
+#define VER_SERVICENAME_STR         "onlyofficeupdate\0"
 #define VER_FILEDESCRIPTION_STR     "ONLYOFFICE Update Service\0"
 #define VER_PRODUCTNAME_STR         "ONLYOFFICE Update Service\0"
 #define VER_COMPANYNAME_STR         "Ascensio System SIA\0"

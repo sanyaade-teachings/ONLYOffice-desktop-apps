@@ -163,7 +163,7 @@ namespace SvcControl
         SC_HANDLE schService = CreateService(
             schSCManager,              // SCM database
             SERVICE_NAME,              // name of service
-            SERVICE_NAME,              // service name to display
+            SERVICE_DISPLAY_NAME,      // service name to display
             SERVICE_ALL_ACCESS,        // desired access
             SERVICE_WIN32_OWN_PROCESS, // service type
             SERVICE_AUTO_START,        // start type // SERVICE_DEMAND_START
